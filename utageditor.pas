@@ -27,6 +27,8 @@ type
     treeTags: TTreeView;
     procedure btnNextClick(Sender: TObject);
     procedure btnPrevClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
     procedure TableViewDblClick(Sender: TObject);
     procedure treeTagsSelectionChanged(Sender: TObject);
   private
@@ -174,6 +176,16 @@ begin
       dec(FTagItemIdxFirst);
   end;
   UpdateItemTable;
+end;
+
+procedure TFTagEditor.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  CloseAction := caFree;
+end;
+
+procedure TFTagEditor.FormDestroy(Sender: TObject);
+begin
+  FMain.FreeTagEditor;
 end;
 
 procedure TFTagEditor.TableViewDblClick(Sender: TObject);
@@ -335,6 +347,7 @@ begin
         inc(p);
       end;
       PAnsiChar(p)^ := #0;
+      FMain.ModelChanged(Self);
     end;
   finally
     Free;
@@ -350,13 +363,17 @@ begin
     FInitValue := PUInt8(F.fData)^;
     BResetClick(nil);
     case ShowModal of
-      mrOK: PUInt8(F.fData)^ := FCurValue;
+      mrOK:
+        begin
+          PUInt8(F.fData)^ := FCurValue;
+          UpdateItemTable;
+          FMain.ModelChanged(Self);
+        end;
       mrRetry: EditFlagField(F);
     end;
   finally
     Free;
   end;
-  UpdateItemTable;
 end;
 
 procedure TFTagEditor.EditInt16Field(const F: TM3Field);
@@ -366,13 +383,17 @@ begin
     FInitValue := PUInt16(F.fData)^;
     BResetClick(nil);
     case ShowModal of
-      mrOK: PUInt16(F.fData)^ := FCurValue;
+      mrOK:
+        begin
+          PUInt16(F.fData)^ := FCurValue;
+          UpdateItemTable;
+          FMain.ModelChanged(Self);
+        end;
       mrRetry: EditFlagField(F);
     end;
   finally
     Free;
   end;
-  UpdateItemTable;
 end;
 
 procedure TFTagEditor.EditInt32Field(const F: TM3Field);
@@ -382,13 +403,17 @@ begin
     FInitValue := PUInt32(F.fData)^;
     BResetClick(nil);
     case ShowModal of
-      mrOK: PUInt32(F.fData)^ := FCurValue;
+      mrOK:
+        begin
+          PUInt32(F.fData)^ := FCurValue;
+          UpdateItemTable;
+          FMain.ModelChanged(Self);
+        end;
       mrRetry: EditFlagField(F);
     end;
   finally
     Free;
   end;
-  UpdateItemTable;
 end;
 
 procedure TFTagEditor.EditFloatField(const F: TM3Field);
@@ -398,13 +423,17 @@ begin
     FInitValue := PSingle(F.fData)^;
     BResetClick(nil);
     case ShowModal of
-      mrOK: PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0);
+      mrOK:
+        begin
+          PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0);
+          UpdateItemTable;
+          FMain.ModelChanged(Self);
+        end;
       mrRetry: EditFlagField(F);
     end;
   finally
     Free;
   end;
-  UpdateItemTable;
 end;
 
 procedure TFTagEditor.EditFlagField(const F: TM3Field);
@@ -432,17 +461,20 @@ begin
     BResetClick(nil);
     case ShowModal of
       mrOK:
-        case F.fSize of
-          1: pUInt8(F.fData)^ := FVal8;
-          2: pUInt16(F.fData)^ := FVal16;
-          4: pUInt32(F.fData)^ := FInitValue;
+        begin
+          case F.fSize of
+            1: pUInt8(F.fData)^ := FVal8;
+            2: pUInt16(F.fData)^ := FVal16;
+            4: pUInt32(F.fData)^ := FInitValue;
+          end;
+          UpdateItemTable;
+          FMain.ModelChanged(Self);
         end;
       mrRetry: EditFlagField(F);
     end;
   finally
     Free;
   end;
-  UpdateItemTable;
 end;
 
 procedure TFTagEditor.ShowEditor(const M3File: TM3File; const Modal: boolean);
@@ -465,7 +497,10 @@ begin
   treeTags.Items.Clear;
   for i := 0 to FM3File.TagCount-1 do
   begin
-    treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
+    if FM3File[i] = FM3Struct then
+      treeTags.Select(treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]))
+    else
+      treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
   end;
 end;
 

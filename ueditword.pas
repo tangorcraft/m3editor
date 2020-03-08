@@ -25,10 +25,11 @@ type
     lblFixed: TLabel;
     procedure BResetClick(Sender: TObject);
     procedure EditHexChange(Sender: TObject);
-    procedure EditExit(Sender: TObject);
     procedure EditSignedChange(Sender: TObject);
+    procedure EditExit(Sender: TObject);
     procedure EditUnSignedChange(Sender: TObject);
   private
+    FUpdating: boolean;
     procedure UpdateEdits(const Exclude: TEdit);
   public
     FCurValue: UInt16;
@@ -52,8 +53,19 @@ end;
 
 procedure TFEditWord.EditHexChange(Sender: TObject);
 begin
+  if FUpdating then Exit;
   FCurValue := StrToIntDef('0x'+EditHex.Text,0);
   UpdateEdits(EditHex);
+end;
+
+procedure TFEditWord.EditSignedChange(Sender: TObject);
+var
+  i: Int16;
+begin
+  if FUpdating then Exit;
+  i := StrToIntDef(EditSigned.Text,0);
+  FCurValue := i;
+  UpdateEdits(EditSigned);
 end;
 
 procedure TFEditWord.EditExit(Sender: TObject);
@@ -61,23 +73,16 @@ begin
   UpdateEdits(nil);
 end;
 
-procedure TFEditWord.EditSignedChange(Sender: TObject);
-var
-  i: Int16;
-begin
-  i := StrToIntDef(EditSigned.Text,0);
-  FCurValue := i;
-  UpdateEdits(EditSigned);
-end;
-
 procedure TFEditWord.EditUnSignedChange(Sender: TObject);
 begin
+  if FUpdating then Exit;
   FCurValue := StrToIntDef(EditUnSigned.Text,0);
   UpdateEdits(EditUnSigned);
 end;
 
 procedure TFEditWord.UpdateEdits(const Exclude: TEdit);
 begin
+  FUpdating := true;
   if EditSigned<>Exclude then
     EditSigned.Text := IntToStr(Int16(FCurValue));
   if EditUnSigned<>Exclude then
@@ -85,6 +90,7 @@ begin
   if EditHex<>Exclude then
     EditHex.Text := IntToHex(FCurValue,4);
   lblFixed.Caption := Format('Fixed: %f',[FCurValue / 2048.0]);
+  FUpdating := false;
 end;
 
 end.

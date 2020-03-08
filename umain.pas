@@ -14,6 +14,7 @@ type
 
   TFMain = class(TForm)
     btnTreeViewEditor: TButton;
+    BMeshEditor: TButton;
     lblLastFile: TLabel;
     lblStruct: TLabel;
     MainMenu: TMainMenu;
@@ -46,12 +47,15 @@ type
     FLastSavedFileName: string;
 
     FM3File: TM3File;
-    FTagEditors: array[0..9] of TFTagEditor;
+    FTagEditor: TFTagEditor;
 
     procedure UpdateLabels;
   public
     procedure Log(const S: string);
     procedure Log(const Fmt : string; const Args : Array of const);
+
+    procedure FreeTagEditor;
+    procedure ModelChanged(const Changer: TForm);
   end;
 
 var
@@ -83,20 +87,19 @@ end;
 
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
 begin
-  with TFTagEditor.Create(Self) do
-  try
-    ShowEditor(FM3File,true);
-  finally
-    Free;
+  if FTagEditor = nil then
+  begin
+    Application.CreateForm(TFTagEditor,FTagEditor);
+    FTagEditor.ShowEditor(FM3File,false);
+    btnTreeViewEditor.Enabled := false;
   end;
 end;
 
 procedure TFMain.FormDestroy(Sender: TObject);
-//var
-//  i: integer;
+var
+  i: integer;
 begin
-  //for i := 0 to 9 do
-  //  FTagEditors[i].Free;
+  FTagEditor.Free;
   Structures.Free;
   FM3File.Free;
 end;
@@ -159,6 +162,19 @@ begin
   if MemoLog.Lines.Count >= 1000 then
     MemoLog.Lines.Delete(0);
   MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+Fmt,Args);
+end;
+
+procedure TFMain.FreeTagEditor;
+begin
+  if FTagEditor <> nil then
+    FTagEditor := nil;
+  btnTreeViewEditor.Enabled := true;
+end;
+
+procedure TFMain.ModelChanged(const Changer: TForm);
+begin
+  if (FTagEditor <> nil) and (Changer <> FTagEditor) then
+    FTagEditor.ResetTagTree;
 end;
 
 end.

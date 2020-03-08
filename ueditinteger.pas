@@ -28,6 +28,7 @@ type
     procedure EditExit(Sender: TObject);
     procedure EditUnSignedChange(Sender: TObject);
   private
+    FUpdating: boolean;
     procedure UpdateEdits(const Exclude: TEdit);
   public
     FCurValue: UInt32;
@@ -51,6 +52,7 @@ end;
 
 procedure TFEditInteger.EditHexChange(Sender: TObject);
 begin
+  if FUpdating then Exit;
   FCurValue := StrToIntDef('0x'+EditHex.Text,0);
   UpdateEdits(EditHex);
 end;
@@ -59,6 +61,7 @@ procedure TFEditInteger.EditSignedChange(Sender: TObject);
 var
   i: Int32;
 begin
+  if FUpdating then Exit;
   i := StrToIntDef(EditSigned.Text,0);
   FCurValue := i;
   UpdateEdits(EditSigned);
@@ -71,18 +74,21 @@ end;
 
 procedure TFEditInteger.EditUnSignedChange(Sender: TObject);
 begin
+  if FUpdating then Exit;
   FCurValue := StrToIntDef(EditUnSigned.Text,0);
   UpdateEdits(EditUnSigned);
 end;
 
 procedure TFEditInteger.UpdateEdits(const Exclude: TEdit);
 begin
+  FUpdating := true;
   if EditSigned<>Exclude then
     EditSigned.Text := IntToStr(Int32(FCurValue));
   if EditUnSigned<>Exclude then
     EditUnSigned.Text := IntToStr(FCurValue);
   if EditHex<>Exclude then
     EditHex.Text := IntToHex(FCurValue and $FFFF,8);
+  FUpdating := false;
 end;
 
 end.

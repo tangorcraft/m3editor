@@ -1,5 +1,5 @@
 object FMain: TFMain
-  Left = 522
+  Left = 587
   Height = 662
   Top = 187
   Width = 737
@@ -34,7 +34,7 @@ object FMain: TFMain
       Left = 8
       Height = 25
       Top = 64
-      Width = 160
+      Width = 155
       Caption = 'Tree View Editor'
       OnClick = btnTreeViewEditorClick
       TabOrder = 0
@@ -54,6 +54,14 @@ object FMain: TFMain
       Width = 103
       Caption = 'Last Opened File: ""'
       ParentColor = False
+    end
+    object BMeshEditor: TButton
+      Left = 8
+      Height = 25
+      Top = 99
+      Width = 155
+      Caption = 'Mesh Editor (WIP)'
+      TabOrder = 1
     end
   end
   object Splitter: TSplitter

@@ -234,6 +234,7 @@
         <Filename Value="ueditstring.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditString"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditString"/>
       </Unit5>
@@ -241,6 +242,7 @@
         <Filename Value="ueditinteger.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditInteger"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditInteger"/>
       </Unit6>
@@ -248,6 +250,7 @@
         <Filename Value="ueditflags.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditFlags"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditFlags"/>
       </Unit7>
@@ -255,6 +258,7 @@
         <Filename Value="ueditfloat.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditFloat"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditFloat"/>
       </Unit8>
@@ -262,6 +266,7 @@
         <Filename Value="ueditword.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditWord"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditWord"/>
       </Unit9>
@@ -269,6 +274,7 @@
         <Filename Value="ueditbyte.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FEditByte"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditByte"/>
       </Unit10>

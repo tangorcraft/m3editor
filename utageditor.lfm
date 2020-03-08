@@ -1,17 +1,20 @@
 object FTagEditor: TFTagEditor
   Left = 519
-  Height = 671
+  Height = 704
   Top = 128
-  Width = 1012
-  Caption = 'M3 Tag View'
-  ClientHeight = 671
-  ClientWidth = 1012
+  Width = 931
+  Caption = 'M3 Editor - Tree View'
+  ClientHeight = 704
+  ClientWidth = 931
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  ShowInTaskBar = stAlways
   LCLVersion = '2.0.0.4'
   object PanelBottom: TPanel
     Left = 0
     Height = 87
-    Top = 584
-    Width = 1012
+    Top = 617
+    Width = 931
     Align = alBottom
     BevelInner = bvRaised
     BevelOuter = bvLowered
@@ -19,7 +22,7 @@ object FTagEditor: TFTagEditor
   end
   object Splitter1: TSplitter
     Left = 193
-    Height = 584
+    Height = 617
     Top = 0
     Width = 5
     AutoSnap = False
@@ -27,20 +30,20 @@ object FTagEditor: TFTagEditor
   end
   object PanelMain: TPanel
     Left = 198
-    Height = 584
+    Height = 617
     Top = 0
-    Width = 814
+    Width = 733
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 584
-    ClientWidth = 814
+    ClientHeight = 617
+    ClientWidth = 733
     TabOrder = 0
     object Splitter2: TSplitter
       Cursor = crVSplit
       Left = 0
       Height = 5
       Top = 90
-      Width = 814
+      Width = 733
       Align = alTop
       AutoSnap = False
       MinSize = 50
@@ -50,11 +53,11 @@ object FTagEditor: TFTagEditor
       Left = 0
       Height = 27
       Top = 95
-      Width = 814
+      Width = 733
       Align = alTop
       BevelOuter = bvLowered
       ClientHeight = 27
-      ClientWidth = 814
+      ClientWidth = 733
       TabOrder = 1
       object btnPrev: TButton
         Left = 1
@@ -87,9 +90,9 @@ object FTagEditor: TFTagEditor
     end
     object TableView: TStringGrid
       Left = 0
-      Height = 462
+      Height = 495
       Top = 122
-      Width = 814
+      Width = 733
       Align = alClient
       AutoEdit = False
       AutoFillColumns = True
@@ -113,7 +116,7 @@ object FTagEditor: TFTagEditor
         item
           SizePriority = 2
           Title.Caption = 'Value'
-          Width = 343
+          Width = 262
         end>
       DoubleBuffered = True
       FixedCols = 0
@@ -128,14 +131,14 @@ object FTagEditor: TFTagEditor
         150
         100
         200
-        343
+        262
       )
     end
     object MemoDesc: TMemo
       Left = 0
       Height = 90
       Top = 0
-      Width = 814
+      Width = 733
       Align = alTop
       Color = clBtnFace
       ReadOnly = True
@@ -145,7 +148,7 @@ object FTagEditor: TFTagEditor
   end
   object treeTags: TTreeView
     Left = 0
-    Height = 584
+    Height = 617
     Top = 0
     Width = 193
     Align = alLeft
