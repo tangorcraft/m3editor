@@ -1,0 +1,109 @@
+object FEditByte: TFEditByte
+  Left = 407
+  Height = 145
+  Top = 294
+  Width = 326
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Edit integer value (1 byte)'
+  ClientHeight = 145
+  ClientWidth = 326
+  LCLVersion = '2.0.0.4'
+  object BOk: TButton
+    Left = 8
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object BCancel: TButton
+    Left = 88
+    Height = 25
+    Top = 112
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object BReset: TButton
+    Left = 168
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'Reset'
+    OnClick = BResetClick
+    TabOrder = 2
+  end
+  object Label1: TLabel
+    Left = 22
+    Height = 15
+    Top = 10
+    Width = 39
+    Caption = 'Signed:'
+    ParentColor = False
+  end
+  object EditSigned: TEdit
+    Left = 66
+    Height = 23
+    Top = 8
+    Width = 254
+    OnChange = EditSignedChange
+    OnExit = EditExit
+    TabOrder = 3
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 15
+    Top = 34
+    Width = 53
+    Caption = 'Unsigned:'
+    ParentColor = False
+  end
+  object EditUnSigned: TEdit
+    Left = 66
+    Height = 23
+    Top = 32
+    Width = 254
+    OnChange = EditUnSignedChange
+    OnExit = EditExit
+    TabOrder = 4
+  end
+  object Label3: TLabel
+    Left = 36
+    Height = 15
+    Top = 58
+    Width = 25
+    Caption = 'HEX:'
+    ParentColor = False
+  end
+  object EditHex: TEdit
+    Left = 66
+    Height = 23
+    Top = 56
+    Width = 254
+    OnChange = EditHexChange
+    OnExit = EditExit
+    TabOrder = 5
+  end
+  object BFlags: TButton
+    Left = 245
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'As Flags'
+    ModalResult = 4
+    TabOrder = 6
+  end
+  object lblFixed: TLabel
+    Left = 32
+    Height = 15
+    Top = 82
+    Width = 48
+    Caption = 'Fixed: 0.0'
+    ParentColor = False
+  end
+end

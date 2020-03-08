@@ -1,0 +1,107 @@
+object FEditInteger: TFEditInteger
+  Left = 592
+  Height = 137
+  Top = 255
+  Width = 339
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Edit integer value (4 bytes)'
+  ClientHeight = 137
+  ClientWidth = 339
+  LCLVersion = '2.0.0.4'
+  object BOk: TButton
+    Left = 8
+    Height = 25
+    Top = 102
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 3
+  end
+  object BCancel: TButton
+    Left = 88
+    Height = 25
+    Top = 102
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object BReset: TButton
+    Left = 168
+    Height = 25
+    Top = 102
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Reset'
+    OnClick = BResetClick
+    TabOrder = 5
+  end
+  object Label1: TLabel
+    Left = 22
+    Height = 15
+    Top = 10
+    Width = 39
+    Caption = 'Signed:'
+    ParentColor = False
+  end
+  object EditSigned: TEdit
+    Left = 72
+    Height = 23
+    Top = 8
+    Width = 252
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = EditSignedChange
+    OnExit = EditExit
+    TabOrder = 0
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 15
+    Top = 34
+    Width = 53
+    Caption = 'Unsigned:'
+    ParentColor = False
+  end
+  object EditUnSigned: TEdit
+    Left = 72
+    Height = 23
+    Top = 32
+    Width = 252
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = EditUnSignedChange
+    OnExit = EditExit
+    TabOrder = 1
+  end
+  object Label3: TLabel
+    Left = 36
+    Height = 15
+    Top = 58
+    Width = 25
+    Caption = 'HEX:'
+    ParentColor = False
+  end
+  object EditHex: TEdit
+    Left = 72
+    Height = 23
+    Top = 56
+    Width = 252
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = EditHexChange
+    OnExit = EditExit
+    TabOrder = 2
+  end
+  object BFlags: TButton
+    Left = 249
+    Height = 25
+    Top = 102
+    Width = 75
+    Caption = 'As Flags'
+    ModalResult = 4
+    TabOrder = 6
+  end
+end

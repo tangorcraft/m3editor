@@ -1,0 +1,124 @@
+object FMain: TFMain
+  Left = 522
+  Height = 662
+  Top = 187
+  Width = 737
+  Caption = 'M3 Model file editor'
+  ClientHeight = 642
+  ClientWidth = 737
+  Menu = MainMenu
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.0.0.4'
+  object MemoLog: TMemo
+    Left = 0
+    Height = 402
+    Top = 240
+    Width = 737
+    Align = alClient
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object PanelMain: TPanel
+    Left = 0
+    Height = 235
+    Top = 0
+    Width = 737
+    Align = alTop
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    ClientHeight = 235
+    ClientWidth = 737
+    TabOrder = 1
+    object btnTreeViewEditor: TButton
+      Left = 8
+      Height = 25
+      Top = 64
+      Width = 160
+      Caption = 'Tree View Editor'
+      OnClick = btnTreeViewEditorClick
+      TabOrder = 0
+    end
+    object lblStruct: TLabel
+      Left = 8
+      Height = 15
+      Top = 8
+      Width = 90
+      Caption = 'Structures File: ""'
+      ParentColor = False
+    end
+    object lblLastFile: TLabel
+      Left = 8
+      Height = 15
+      Top = 32
+      Width = 103
+      Caption = 'Last Opened File: ""'
+      ParentColor = False
+    end
+  end
+  object Splitter: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 235
+    Width = 737
+    Align = alTop
+    AutoSnap = False
+    MinSize = 50
+    ResizeAnchor = akTop
+  end
+  object MainMenu: TMainMenu
+    left = 64
+    top = 360
+    object MFile: TMenuItem
+      Caption = 'File'
+      object MFileOpen: TMenuItem
+        Caption = 'Open ...'
+        OnClick = MFileOpenClick
+      end
+      object MSave: TMenuItem
+        Caption = 'Save'
+        OnClick = MSaveClick
+      end
+      object MSaveAs: TMenuItem
+        Caption = 'Save as ...'
+        OnClick = MSaveAsClick
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object MExit: TMenuItem
+        Caption = 'Exit'
+        ShortCut = 123
+      end
+    end
+    object MStruct: TMenuItem
+      Caption = 'Structure'
+      object MStructOpen: TMenuItem
+        Caption = 'Open Structures ...'
+      end
+      object MStructReload: TMenuItem
+        Caption = 'Reload Structures'
+      end
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Filter = 'Model/Animation Files|*.m3;*.m3a|Model Files|*.m3|Animation Files|*.m3a|All Files|*.*'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    left = 152
+    top = 360
+  end
+  object SaveDialog: TSaveDialog
+    Filter = 'M3 Model File|*.m3'
+    Options = [ofOverwritePrompt, ofPathMustExist, ofEnableSizing, ofViewDetail]
+    left = 152
+    top = 429
+  end
+  object OpenStructDialog: TOpenDialog
+    Title = 'Open structures.xml'
+    Filter = 'Structures XML|structures.xml|XML File|*.xml|Any File|*.*'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    left = 248
+    top = 360
+  end
+end

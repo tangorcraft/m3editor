@@ -1,0 +1,164 @@
+object FTagEditor: TFTagEditor
+  Left = 519
+  Height = 671
+  Top = 128
+  Width = 1012
+  Caption = 'M3 Tag View'
+  ClientHeight = 671
+  ClientWidth = 1012
+  LCLVersion = '2.0.0.4'
+  object PanelBottom: TPanel
+    Left = 0
+    Height = 87
+    Top = 584
+    Width = 1012
+    Align = alBottom
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    TabOrder = 2
+  end
+  object Splitter1: TSplitter
+    Left = 193
+    Height = 584
+    Top = 0
+    Width = 5
+    AutoSnap = False
+    MinSize = 100
+  end
+  object PanelMain: TPanel
+    Left = 198
+    Height = 584
+    Top = 0
+    Width = 814
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 584
+    ClientWidth = 814
+    TabOrder = 0
+    object Splitter2: TSplitter
+      Cursor = crVSplit
+      Left = 0
+      Height = 5
+      Top = 90
+      Width = 814
+      Align = alTop
+      AutoSnap = False
+      MinSize = 50
+      ResizeAnchor = akTop
+    end
+    object PanelNavi: TPanel
+      Left = 0
+      Height = 27
+      Top = 95
+      Width = 814
+      Align = alTop
+      BevelOuter = bvLowered
+      ClientHeight = 27
+      ClientWidth = 814
+      TabOrder = 1
+      object btnPrev: TButton
+        Left = 1
+        Height = 25
+        Top = 1
+        Width = 31
+        Caption = '<<'
+        OnClick = btnPrevClick
+        TabOrder = 0
+      end
+      object btnNext: TButton
+        Left = 104
+        Height = 25
+        Top = 1
+        Width = 31
+        Caption = '>>'
+        OnClick = btnNextClick
+        TabOrder = 1
+      end
+      object lblItemIndex: TLabel
+        Left = 40
+        Height = 15
+        Top = 8
+        Width = 56
+        Alignment = taCenter
+        AutoSize = False
+        Caption = '0/0'
+        ParentColor = False
+      end
+    end
+    object TableView: TStringGrid
+      Left = 0
+      Height = 462
+      Top = 122
+      Width = 814
+      Align = alClient
+      AutoEdit = False
+      AutoFillColumns = True
+      ColCount = 4
+      Columns = <      
+        item
+          SizePriority = 0
+          Title.Caption = 'Field Name'
+          Width = 150
+        end      
+        item
+          SizePriority = 0
+          Title.Caption = 'Field Type'
+          Width = 100
+        end      
+        item
+          SizePriority = 0
+          Title.Caption = 'Field Info'
+          Width = 200
+        end      
+        item
+          SizePriority = 2
+          Title.Caption = 'Value'
+          Width = 343
+        end>
+      DoubleBuffered = True
+      FixedCols = 0
+      MouseWheelOption = mwGrid
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll, goTruncCellHints, goRowHighlight]
+      ParentDoubleBuffered = False
+      RowCount = 1
+      ScrollBars = ssVertical
+      TabOrder = 3
+      OnDblClick = TableViewDblClick
+      ColWidths = (
+        150
+        100
+        200
+        343
+      )
+    end
+    object MemoDesc: TMemo
+      Left = 0
+      Height = 90
+      Top = 0
+      Width = 814
+      Align = alTop
+      Color = clBtnFace
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 2
+    end
+  end
+  object treeTags: TTreeView
+    Left = 0
+    Height = 584
+    Top = 0
+    Width = 193
+    Align = alLeft
+    AutoExpand = True
+    ExpandSignType = tvestPlusMinus
+    ReadOnly = True
+    TabOrder = 3
+    OnSelectionChanged = treeTagsSelectionChanged
+    Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    Items.Data = {
+      F9FFFFFF020001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
+      000001040000004D4F444CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000
+      000000000400000055385F5F
+    }
+  end
+end
