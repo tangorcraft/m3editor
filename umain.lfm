@@ -104,9 +104,11 @@ object FMain: TFMain
       Caption = 'Structure'
       object MStructOpen: TMenuItem
         Caption = 'Open Structures ...'
+        OnClick = MStructOpenClick
       end
       object MStructReload: TMenuItem
         Caption = 'Reload Structures'
+        OnClick = MStructReloadClick
       end
     end
   end

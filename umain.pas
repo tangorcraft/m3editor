@@ -39,6 +39,8 @@ type
     procedure MFileOpenClick(Sender: TObject);
     procedure MSaveAsClick(Sender: TObject);
     procedure MSaveClick(Sender: TObject);
+    procedure MStructOpenClick(Sender: TObject);
+    procedure MStructReloadClick(Sender: TObject);
   private
     FAppPath: string;
 
@@ -142,6 +144,29 @@ begin
   Log('Saving to "%s"',[FCurrentFileName]);
   FM3File.SaveM3File(FCurrentFileName);
   FLastSavedFileName := FCurrentFileName;
+end;
+
+procedure TFMain.MStructOpenClick(Sender: TObject);
+begin
+  if OpenStructDialog.Execute then
+  begin
+    FStructFileName := OpenStructDialog.FileName;
+    Log('Loading structures info from "%s"',[FStructFileName]);
+    Structures.LoadStructures(FStructFileName);
+    if FTagEditor <> nil then
+      FTagEditor.ResetTagTree;
+  end;
+end;
+
+procedure TFMain.MStructReloadClick(Sender: TObject);
+begin
+  if FileExists(FStructFileName) then
+  begin
+    Log('Reloading structures info from "%s"',[FStructFileName]);
+    Structures.LoadStructures(FStructFileName);
+    if FTagEditor <> nil then
+      FTagEditor.ResetTagTree;
+  end;
 end;
 
 procedure TFMain.UpdateLabels;
