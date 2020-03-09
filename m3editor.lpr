@@ -13,9 +13,6 @@ uses
 
 {$R *.res}
 
-var
-  exStyle: Integer;
-
 begin
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;

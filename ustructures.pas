@@ -100,7 +100,7 @@ type
   TM3TagInfo = record
     Name: string;
     Tag: UInt32;
-    Ver: integer;
+    Ver: UInt32;
     Size: integer;
   end;
 
@@ -159,7 +159,7 @@ type
     Ver: UInt32;
     Data: Pointer;
     DataSize: Integer;
-    ItemSize: Integer;
+    ItemSize: UInt32;
     ItemCount: UInt32;
     ItemFields: array of TM3Field;
   end;
@@ -171,9 +171,10 @@ type
     FTagInfos: array of TM3TagInfo;
     FStructInfos: array of TM3StructInfo;
 
-    procedure ParseFieldInfo(const Node: TDOMElement; var Field: TM3FieldInfo);
+    procedure ParseFieldInfo(const Node: TDOMElement; var Field: TM3FieldInfo;
+      const DefMinVer: Integer = 0; const DefMaxVer: Integer = MaxInt);
     procedure ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName, GroupName: string;
-      const SubLevel: Integer; var Desc: string);
+      const SubLevel, SubVerMin, SubVerMax: Integer; var Desc: string);
     procedure LoadTagInfos;
     procedure LoadStructInfos;
 
@@ -192,7 +193,7 @@ type
 var
   Structures: TM3Structures;
 
-procedure ResizeStructure(var Struct: TM3Structure; NewCount: Integer);
+procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
 
 function M3FloatToStr(const F: Single): string;
 
@@ -201,7 +202,7 @@ implementation
 uses
   umain;
 
-procedure ResizeStructure(var Struct: TM3Structure; NewCount: Integer);
+procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
 var
   newSize, fillSize: Integer;
 begin
@@ -329,7 +330,7 @@ end;
 { TM3Structures }
 
 procedure TM3Structures.ParseFieldInfo(const Node: TDOMElement;
-  var Field: TM3FieldInfo);
+  var Field: TM3FieldInfo; const DefMinVer: Integer; const DefMaxVer: Integer);
 var
   bit: TDOMElement;
   i: integer;
@@ -338,8 +339,8 @@ begin
   Field.fiTypeName := Node['type'];
   Field.fiType := FieldTypeFromStr(Field.fiTypeName);
   Field.fiSize := StrToIntDef(Node['size'],FieldSizeFromType(Field.fiType));
-  Field.fiVerMin := StrToIntDef(Node['since-version'],0);
-  Field.fiVerMax := StrToIntDef(Node['till-version'],MaxInt);
+  Field.fiVerMin := StrToIntDef(Node['since-version'],DefMinVer);
+  Field.fiVerMax := StrToIntDef(Node['till-version'],DefMaxVer);
   Field.fiDefault := Node['default-value'];
   Field.fiExpected := Node['expected-value'];
   bit := Node.FindNode('bits') as TDOMElement;
@@ -362,7 +363,7 @@ begin
 end;
 
 procedure TM3Structures.ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName,
-  GroupName: string; const SubLevel: Integer; var Desc: string);
+  GroupName: string; const SubLevel, SubVerMin, SubVerMax: Integer; var Desc: string);
 var
   struct, el: TDOMElement;
   i, subVer: Integer;
@@ -409,12 +410,20 @@ begin
   while Assigned(el) do
   begin
     SetLength(m3Tag.iFields,i+1);
-    ParseFieldInfo(el,m3Tag.iFields[i]);
+    ParseFieldInfo(el,m3Tag.iFields[i],SubVerMin,SubVerMax);
     m3Tag.iFields[i].fiGroupName := GroupName;
     m3Tag.iFields[i].fiSubLevel := SubLevel;
     if (m3Tag.iFields[i].fiType = ftSubStruct) and (m3Tag.iFields[i].fiSize = 0) then
     begin
-      ParseSubStructInfo(m3Tag,m3Tag.iFields[i].fiTypeName, GroupName + m3Tag.iFields[i].fiName + '.', SubLevel + 1,m3Tag.iFields[i].fiTypeInfo);
+      ParseSubStructInfo(
+        m3Tag,
+        m3Tag.iFields[i].fiTypeName,
+        GroupName + m3Tag.iFields[i].fiName + '.',
+        SubLevel + 1,
+        m3Tag.iFields[i].fiVerMin,
+        m3Tag.iFields[i].fiVerMax,
+        m3Tag.iFields[i].fiTypeInfo
+      );
       i := length(m3Tag.iFields)-1;
     end;
     inc(i);
@@ -502,7 +511,13 @@ begin
           iFields[j].fiSubLevel := 0;
           if (iFields[j].fiType = ftSubStruct) and (iFields[j].fiSize = 0) then
           begin
-            ParseSubStructInfo(FStructInfos[i],iFields[j].fiTypeName,iFields[j].fiName + '.', 1, iFields[j].fiTypeInfo);
+            ParseSubStructInfo(
+              FStructInfos[i],
+              iFields[j].fiTypeName,
+              iFields[j].fiName + '.', 1,
+              iFields[j].fiVerMin,
+              iFields[j].fiVerMax,
+              iFields[j].fiTypeInfo);
             j := length(iFields)-1;
           end;
 
@@ -577,7 +592,6 @@ end;
 
 function TM3Structures.GetStructureInfo(var m3Tag: TM3Structure): boolean;
 var
-  struct, sub, field: TDOMElement;
   i, j, k, idx, off: integer;
 begin
   idx := -1;
@@ -621,7 +635,7 @@ begin
     j := 0;
     off := 0;
     for i := 0 to length(iFields)-1 do
-      if (iFields[i].fiSubLevel > 0) or (
+      if (
          (m3Tag.Ver >= iFields[i].fiVerMin) and (m3Tag.Ver <= iFields[i].fiVerMax)
       ) then
       begin
