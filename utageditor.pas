@@ -92,7 +92,7 @@ begin
     ftInt8: Result := Format('%d (0x%s)',[pInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
     ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,2)]);
     ftInt32: Result := Format('%d (0x%0:.8x)',[pInt32(F.fData)^]);
-    ftFloat: Result := Format('%f (0x%.8x)',[PSingle(F.fData)^,pUInt32(F.fData)^]);
+    ftFloat: Result := Format('%s (0x%.8x)',[M3FloatToStr(PSingle(F.fData)^),pUInt32(F.fData)^]);
     ftSubStruct: Result := '{Sub Structure: "' + F.fTypeName + '"}';
   end;
   if F.fTypeFlag then

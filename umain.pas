@@ -106,7 +106,7 @@ begin
     FModified and
     (MessageDlg(
       'Model changed',
-      'All changes made to the model will be lost if you continue.',
+      'All unsaved changes made to the model will be lost if you continue.',
       mtWarning,
       mbOKCancel,0
     ) <> mrOK)
@@ -130,7 +130,7 @@ begin
     FModified and
     (MessageDlg(
       'Model changed',
-      'All changes made to the model will be lost if you continue.',
+      'All unsaved changes made to the model will be lost if you continue.',
       mtWarning,
       mbOKCancel,0
     ) <> mrOK)

@@ -1,18 +1,18 @@
 object FEditFloat: TFEditFloat
   Left = 511
-  Height = 74
+  Height = 102
   Top = 236
   Width = 252
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Edit float value'
-  ClientHeight = 74
+  ClientHeight = 102
   ClientWidth = 252
   LCLVersion = '2.0.0.4'
   object BOk: TButton
     Left = 8
     Height = 25
-    Top = 40
+    Top = 72
     Width = 75
     Caption = 'OK'
     Default = True
@@ -22,7 +22,7 @@ object FEditFloat: TFEditFloat
   object BCancel: TButton
     Left = 88
     Height = 25
-    Top = 40
+    Top = 72
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -32,7 +32,7 @@ object FEditFloat: TFEditFloat
   object BReset: TButton
     Left = 168
     Height = 25
-    Top = 40
+    Top = 72
     Width = 75
     Caption = 'Reset'
     OnClick = BResetClick
@@ -44,6 +44,23 @@ object FEditFloat: TFEditFloat
     Top = 8
     Width = 236
     Anchors = [akTop, akLeft, akRight]
+    OnChange = EditChange
     TabOrder = 3
+  end
+  object lblValue: TLabel
+    Left = 8
+    Height = 15
+    Top = 32
+    Width = 41
+    Caption = 'Value: 0'
+    ParentColor = False
+  end
+  object lblExp: TLabel
+    Left = 8
+    Height = 15
+    Top = 48
+    Width = 52
+    Caption = 'Exponent:'
+    ParentColor = False
   end
 end

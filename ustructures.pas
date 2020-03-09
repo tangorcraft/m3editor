@@ -194,6 +194,8 @@ var
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: Integer);
 
+function M3FloatToStr(const F: Single): string;
+
 implementation
 
 uses
@@ -219,6 +221,17 @@ begin
   newSize := NewCount * Struct.ItemSize;
   fillSize := Struct.DataSize - newSize;
   FillChar((Struct.Data + newSize)^,fillSize,$AA);
+end;
+
+function M3FloatToStr(const F: Single): string;
+var
+  i: integer;
+begin
+  Result := FloatToStrF(F,ffFixed,0,100);
+  i := length(Result);
+  while (i > 3) and (Result[i] = '0') do
+    dec(i);
+  Result := copy(Result,1,i);
 end;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
