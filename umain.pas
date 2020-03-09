@@ -34,6 +34,7 @@ type
     SaveDialog: TSaveDialog;
     Splitter: TSplitter;
     procedure btnTreeViewEditorClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MFileOpenClick(Sender: TObject);
@@ -49,6 +50,7 @@ type
     FLastSavedFileName: string;
 
     FM3File: TM3File;
+    FModified: Boolean;
     FTagEditor: TFTagEditor;
 
     procedure UpdateLabels;
@@ -76,6 +78,7 @@ begin
   FAppPath := ExtractFilePath(Application.ExeName);
   Structures := TM3Structures.Create;
   FM3File := TM3File.Create;
+  FModified := False;
   if FileExists(FAppPath+'structures.xml') then
   begin
     FStructFileName := FAppPath+'structures.xml';
@@ -97,6 +100,19 @@ begin
   end;
 end;
 
+procedure TFMain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  if
+    FModified and
+    (MessageDlg(
+      'Model changed',
+      'All changes made to the model will be lost if you continue.',
+      mtWarning,
+      mbOKCancel,0
+    ) <> mrOK)
+  then CloseAction := caNone;
+end;
+
 procedure TFMain.FormDestroy(Sender: TObject);
 var
   i: integer;
@@ -110,11 +126,21 @@ procedure TFMain.MFileOpenClick(Sender: TObject);
 var
   i: integer;
 begin
+  if
+    FModified and
+    (MessageDlg(
+      'Model changed',
+      'All changes made to the model will be lost if you continue.',
+      mtWarning,
+      mbOKCancel,0
+    ) <> mrOK)
+  then Exit;
   if OpenDialog.Execute then
   begin
     Log('Opening "%s"',[OpenDialog.FileName]);
     FCurrentFileName := OpenDialog.FileName;
     FM3File.LoadM3File(OpenDialog.FileName);
+    FModified := false;
     Log('%d tags loaded from "%s"',[FM3File.TagCount, OpenDialog.FileName]);
     for i := 0 to FM3File.TagCount - 1 do
       Structures.GetStructureInfo(FM3File[i]^);
@@ -130,6 +156,7 @@ begin
     FLastSavedFileName := SaveDialog.FileName;
     Log('Saving to "%s"',[FCurrentFileName]);
     FM3File.SaveM3File(FCurrentFileName);
+    FModified := false;
     UpdateLabels;
   end;
 end;
@@ -143,6 +170,7 @@ begin
   end;
   Log('Saving to "%s"',[FCurrentFileName]);
   FM3File.SaveM3File(FCurrentFileName);
+  FModified := false;
   FLastSavedFileName := FCurrentFileName;
 end;
 
@@ -198,6 +226,7 @@ end;
 
 procedure TFMain.ModelChanged(const Changer: TForm);
 begin
+  FModified := true;
   if (FTagEditor <> nil) and (Changer <> FTagEditor) then
     FTagEditor.ResetTagTree;
 end;
