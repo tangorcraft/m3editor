@@ -126,6 +126,7 @@ type
     fiVerMax: integer;
     fiDefault: string;
     fiExpected: string;
+    fiRefTo: string;
   end;
 
   TM3StructInfo = record
@@ -148,6 +149,15 @@ type
     fData: Pointer;
     fDefault: string;
     fExpected: string;
+    fRefTo: string;
+  end;
+
+  TM3RefFrom = record
+    rfTagIndex: Integer;
+    rfItemIndex: Integer;
+    frFieldRow: Integer;
+    rfRefFieldOffset: Integer;
+    rfName: string;
   end;
 
   PM3Structure = ^TM3Structure;
@@ -162,6 +172,7 @@ type
     ItemSize: UInt32;
     ItemCount: UInt32;
     ItemFields: array of TM3Field;
+    RefFrom: array of TM3RefFrom;
   end;
 
   TM3Structures = class
@@ -222,6 +233,7 @@ begin
   newSize := NewCount * Struct.ItemSize;
   fillSize := Struct.DataSize - newSize;
   FillChar((Struct.Data + newSize)^,fillSize,$AA);
+  Struct.ItemCount := NewCount;
 end;
 
 function M3FloatToStr(const F: Single): string;
@@ -336,6 +348,8 @@ var
   i: integer;
 begin
   Field.fiName := Node['name'];
+  if Field.fiName = '' then
+    Field.fiName := '{Unnamed}';
   Field.fiTypeName := Node['type'];
   Field.fiType := FieldTypeFromStr(Field.fiTypeName);
   Field.fiSize := StrToIntDef(Node['size'],FieldSizeFromType(Field.fiType));
@@ -343,6 +357,7 @@ begin
   Field.fiVerMax := StrToIntDef(Node['till-version'],DefMaxVer);
   Field.fiDefault := Node['default-value'];
   Field.fiExpected := Node['expected-value'];
+  Field.fiRefTo := Node['refTo'];
   bit := Node.FindNode('bits') as TDOMElement;
   if Assigned(bit) then
   begin
@@ -624,6 +639,7 @@ begin
       fOffset := 0;
       fDefault := '';
       fExpected := '';
+      fRefTo := '';
     end;
     Exit;
   end;
@@ -656,6 +672,7 @@ begin
           inc(off, fSize);
           fDefault := fiDefault;
           fExpected := fiExpected;
+          fRefTo := fiRefTo;
         end;
         inc(j);
       end;

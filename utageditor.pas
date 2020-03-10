@@ -39,6 +39,7 @@ type
     FTagItemIdxLast: Integer;
 
     procedure SelectStructure(const S: PM3Structure);
+    procedure JumpToStruct(const Ref: TM3RefFrom);
 
     procedure UpdateItemLabel;
 
@@ -90,7 +91,7 @@ begin
     ftUInt16: Result := Format('%d (0x%s)',[pUInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
     ftUInt32: Result := Format('%d (0x%0:.8x)',[pUInt32(F.fData)^]);
     ftInt8: Result := Format('%d (0x%s)',[pInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
-    ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,2)]);
+    ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
     ftInt32: Result := Format('%d (0x%0:.8x)',[pInt32(F.fData)^]);
     ftFloat: Result := Format('%s (0x%.8x)',[M3FloatToStr(PSingle(F.fData)^),pUInt32(F.fData)^]);
     ftSubStruct: Result := '{Sub Structure: "' + F.fTypeName + '"}';
@@ -124,7 +125,7 @@ begin
   if tag.StructName = 'CHAR' then
   begin
     s := PChar(tag.Data);
-    Result:=Format('%d: %s "%s"',[tag.Index,tag.StructName,s]);
+    Result:=Format('%d: %s (%d) "%s"',[tag.Index,tag.StructName,length(s)+1,s]);
   end
   else
   begin
@@ -142,7 +143,8 @@ end;
 
 procedure TFTagEditor.treeTagsSelectionChanged(Sender: TObject);
 begin
-  SelectStructure(treeTags.Selected.Data);
+  if Assigned(treeTags.Selected) then
+    SelectStructure(treeTags.Selected.Data);
 end;
 
 procedure TFTagEditor.SelectStructure(const S: PM3Structure);
@@ -157,6 +159,36 @@ begin
     FTagItemDisplayRange := False;
     PanelNavi.Enabled := True;
     UpdateItemTable;
+  end;
+end;
+
+procedure TFTagEditor.JumpToStruct(const Ref: TM3RefFrom);
+begin
+  if (Ref.rfTagIndex >= 0) and (Ref.rfTagIndex < FM3File.TagCount) and
+    (MessageDlg(
+      'Jump to',
+      Format('Jump to "%d: %s [%d]"?',[FM3File[Ref.rfTagIndex]^.Index, FM3File[Ref.rfTagIndex]^.StructName, Ref.rfItemIndex]),
+      mtConfirmation,
+      mbYesNo,
+      0
+    ) = mrYes)
+  then
+  begin
+    with treeTags.Items.GetEnumerator do
+    try
+      while MoveNext do
+      if (Current.Level = 0)and(PM3Structure(Current.Data)^.Index = Ref.rfTagIndex) then
+      begin
+        treeTags.Select(Current);
+        if (Ref.rfItemIndex >= 0) and (Ref.rfItemIndex < PM3Structure(Current.Data)^.ItemCount) then
+          FTagItemIdxFirst := Ref.rfItemIndex;
+        UpdateItemTable;
+        TableView.Row := Ref.frFieldRow;
+        Break;
+      end;
+    finally
+      Free;
+    end;
   end;
 end;
 
@@ -231,6 +263,9 @@ begin
     ftFloat: EditFloatField(FM3Struct^.ItemFields[idx]);
     ftSubStruct: ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
   end;
+  idx := idx - length(FM3Struct^.ItemFields);
+  if (idx >= 0) and (idx < length(FM3Struct^.RefFrom)) then
+    JumpToStruct(FM3Struct^.RefFrom[idx]);
 end;
 
 procedure TFTagEditor.btnNextClick(Sender: TObject);
@@ -254,9 +289,9 @@ end;
 procedure TFTagEditor.UpdateItemLabel;
 begin
   if FTagItemDisplayRange then
-    lblItemIndex.Caption := Format('(%d-%d)',[FTagItemIdxFirst,FTagItemIdxLast])
+    lblItemIndex.Caption := Format('[%d-%d]',[FTagItemIdxFirst,FTagItemIdxLast])
   else
-    lblItemIndex.Caption := Format('%d',[FTagItemIdxFirst])
+    lblItemIndex.Caption := Format('[%d]',[FTagItemIdxFirst])
 end;
 
 procedure TFTagEditor.UpdateItemTable;
@@ -275,42 +310,78 @@ begin
 end;
 
 procedure TFTagEditor.DisplayCHAR;
+var
+  i: integer;
+  s: string;
 begin
   PanelNavi.Enabled := False;
-  TableView.RowCount := 2;
+  s:=PChar(FM3Struct^.Data);
+  if (length(s)<>(FM3Struct^.ItemCount-1)) and
+     (MessageDlg(
+       'Size mismatch',Format('CHAR tag size (%d) is different from actual string length (%d)!'#13'Correct tag size?',[FM3Struct^.ItemCount,length(s)+1]),
+       mtWarning, mbYesNo,0
+     ) = mrYes)
+  then
+    begin
+      FM3Struct^.ItemCount := length(s)+1;
+      FMain.ModelChanged(Self);
+      UpdateTagTree;
+    end;
+
+  TableView.RowCount := 2 + length(FM3Struct^.RefFrom);
   TableView.Cells[COL_Name,1] := FM3Struct^.StructName;
-  TableView.Cells[COL_Type,1] := 'string';
-  TableView.Cells[COL_Info,1] := '';
-  TableView.Cells[COL_Value,1] := PChar(FM3Struct^.Data);
+  TableView.Cells[COL_Type,1] := Format('string (%d)',[length(s)]);
+  TableView.Cells[COL_Info,1] := 'size (with terminating 0) = '+IntToStr(FM3Struct^.ItemCount);
+  TableView.Cells[COL_Value,1] := s;
+
+  for i := 0 to length(FM3Struct^.RefFrom)-1 do
+  with FM3Struct^.RefFrom[i] do
+  begin
+    TableView.Cells[COL_Name,2+i] := '';
+    TableView.Cells[COL_Type,2+i] := 'Referenced from';
+    TableView.Cells[COL_Info,2+i] := '';
+    TableView.Cells[COL_Value,2+i] := rfName;
+  end;
 end;
 
 procedure TFTagEditor.DisplayStructure;
 var
   i, off: integer;
-  s: string;
+  s, ref: string;
 begin
   off := FM3Struct^.ItemSize * FTagItemIdxFirst;
-  TableView.RowCount := length(FM3Struct^.ItemFields)+1;
+  TableView.RowCount := length(FM3Struct^.ItemFields)+length(FM3Struct^.RefFrom)+1;
   for i := 0 to length(FM3Struct^.ItemFields)-1 do
   with FM3Struct^.ItemFields[i] do
   begin
     fData := FM3Struct^.Data + fOffset + off;
     TableView.Cells[COL_Name,i+1] := RepeatStr('- ',fSubLevel)+fGroupName+fName;
-    TableView.Cells[COL_Type,i+1] := fTypeName;
+    if fRefTo = '' then
+      TableView.Cells[COL_Type,i+1] := fTypeName
+    else
+      TableView.Cells[COL_Type,i+1] := fTypeName + '; refTo -> ' + fRefTo;
+    ref := '';
     if fType = ftSubStruct then
     begin
       TableView.Cells[COL_Info,i+1] := fTypeInfo;
-      if fTypeName = 'Reference' then
+      {if fTypeName = 'Reference' then
       with Pm3ref(fData)^ do
       begin
         if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
-          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+GetTreeTagName(FM3File[refIndex]^),FM3File[refIndex]);
+        begin
+          ref := GetTreeTagName(FM3File[refIndex]^);
+          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+        end;
       end
-      else if fTypeName = 'SmallReference' then
+      else}
+      if (fTypeName = 'SmallReference') or (fTypeName = 'Reference') then
       with Pm3ref_small(fData)^ do
       begin
         if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
-          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+GetTreeTagName(FM3File[refIndex]^),FM3File[refIndex]);
+        begin
+          ref := GetTreeTagName(FM3File[refIndex]^);
+          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+        end;
       end
     end
     else
@@ -321,14 +392,25 @@ begin
       else if fExpected <> '' then s += 'Expected = "'+fExpected+'";';
       TableView.Cells[COL_Info,i+1] := s;
     end;
-    TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i]);
+    if ref = '' then
+      TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i])
+    else
+      TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i]) + '; Actual refTo -> ' + ref;
+  end;
+  off := length(FM3Struct^.ItemFields)+1;
+  for i := 0 to length(FM3Struct^.RefFrom)-1 do
+  begin
+    TableView.Cells[COL_Name,off+i] := '';
+    TableView.Cells[COL_Type,off+i] := 'Referenced from';
+    TableView.Cells[COL_Info,off+i] := '';
+    TableView.Cells[COL_Value,off+i] := FM3Struct^.RefFrom[i].rfName;
   end;
 end;
 
 procedure TFTagEditor.EditCHAR;
 var
   s: string;
-  i: Integer;
+  i, l: Integer;
   p: Pointer;
 begin
   s := PChar(FM3Struct^.Data);
@@ -339,6 +421,7 @@ begin
     if ShowModal = mrOK then
     begin
       s := Edit.Text;
+      l := FM3Struct^.ItemCount;
       ResizeStructure(FM3Struct^,length(s)+1);
       p := FM3Struct^.Data;
       for i := 1 to length(s) do
@@ -347,12 +430,31 @@ begin
         inc(p);
       end;
       PAnsiChar(p)^ := #0;
+      if (Length(FM3Struct^.RefFrom) > 0) and (FM3Struct^.ItemCount <> l) and
+         (MessageDlg(
+           'References update',
+           'References to this tag should be updated with new size of this tag.'#13+
+           'This can be done automatically, but this feature is experimental.'#13+
+           'Update references?',
+           mtConfirmation,
+           mbYesNo,
+           0
+         ) = mrYes)
+      then
+      begin
+        for i := 0 to length(FM3Struct^.RefFrom)-1 do
+        with FM3Struct^.RefFrom[i] do
+        begin
+          p := FM3File[rfTagIndex]^.Data + rfRefFieldOffset;
+          Pm3ref_small(p)^.refCount := FM3Struct^.ItemCount;
+        end;
+      end;
       FMain.ModelChanged(Self);
     end;
   finally
     Free;
   end;
-  TableView.Cells[COL_Value,1] := PChar(FM3Struct^.Data);
+  UpdateItemTable;
   UpdateTagTree;
 end;
 

@@ -41,6 +41,9 @@ var
 
 implementation
 
+uses
+  ustructures;
+
 {$R *.lfm}
 
 { TFEditWord }
@@ -89,7 +92,7 @@ begin
     EditUnSigned.Text := IntToStr(FCurValue);
   if EditHex<>Exclude then
     EditHex.Text := IntToHex(FCurValue,4);
-  lblFixed.Caption := Format('Fixed: %f',[FCurValue / 2048.0]);
+  lblFixed.Caption := Format('Fixed: %s',[M3FloatToStr(FCurValue / 2048.0)]);
   FUpdating := false;
 end;
 

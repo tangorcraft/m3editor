@@ -84,7 +84,7 @@ object FTagEditor: TFTagEditor
         Width = 56
         Alignment = taCenter
         AutoSize = False
-        Caption = '0/0'
+        Caption = '[0]'
         ParentColor = False
       end
     end
