@@ -468,8 +468,8 @@ begin
       mrOK:
         begin
           PUInt8(F.fData)^ := FCurValue;
-          UpdateItemTable;
           FMain.ModelChanged(Self);
+          UpdateItemTable;
         end;
       mrRetry: EditFlagField(F);
     end;
@@ -488,8 +488,8 @@ begin
       mrOK:
         begin
           PUInt16(F.fData)^ := FCurValue;
-          UpdateItemTable;
           FMain.ModelChanged(Self);
+          UpdateItemTable;
         end;
       mrRetry: EditFlagField(F);
     end;
@@ -508,8 +508,8 @@ begin
       mrOK:
         begin
           PUInt32(F.fData)^ := FCurValue;
-          UpdateItemTable;
           FMain.ModelChanged(Self);
+          UpdateItemTable;
         end;
       mrRetry: EditFlagField(F);
     end;
@@ -528,8 +528,8 @@ begin
       mrOK:
         begin
           PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0);
-          UpdateItemTable;
           FMain.ModelChanged(Self);
+          UpdateItemTable;
         end;
       mrRetry: EditFlagField(F);
     end;
@@ -569,8 +569,8 @@ begin
             2: pUInt16(F.fData)^ := FVal16;
             4: pUInt32(F.fData)^ := FInitValue;
           end;
-          UpdateItemTable;
           FMain.ModelChanged(Self);
+          UpdateItemTable;
         end;
       mrRetry: EditFlagField(F);
     end;
