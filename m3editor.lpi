@@ -201,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -278,6 +278,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uEditByte"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="ucharbulkedit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FCHARBulkEdit"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="uCHARBulkEdit"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

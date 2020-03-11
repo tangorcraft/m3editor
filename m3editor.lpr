@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, umain, ustructures, uTagEditor, uM3File, uEditString, uEditInteger,
-  uEditFlags, uEditFloat, uEditWord, uEditByte
+  uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit
   { you can add units after this };
 
 {$R *.res}

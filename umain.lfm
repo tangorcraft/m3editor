@@ -19,7 +19,7 @@ object FMain: TFMain
     Width = 764
     Align = alClient
     ScrollBars = ssVertical
-    TabOrder = 0
+    TabOrder = 1
   end
   object PanelMain: TPanel
     Left = 0
@@ -31,7 +31,7 @@ object FMain: TFMain
     BevelOuter = bvLowered
     ClientHeight = 235
     ClientWidth = 764
-    TabOrder = 1
+    TabOrder = 0
     object btnTreeViewEditor: TButton
       Left = 8
       Height = 25
@@ -63,7 +63,7 @@ object FMain: TFMain
       Top = 64
       Width = 155
       Caption = 'Mesh Editor (WIP)'
-      TabOrder = 1
+      TabOrder = 2
       Visible = False
     end
     object gbOptions: TGroupBox
@@ -75,7 +75,7 @@ object FMain: TFMain
       Caption = 'Options'
       ClientHeight = 101
       ClientWidth = 741
-      TabOrder = 2
+      TabOrder = 3
       object cbAskOnJumpTo: TCheckBox
         Left = 7
         Height = 19
@@ -114,7 +114,8 @@ object FMain: TFMain
       Top = 64
       Width = 136
       Caption = 'CHAR tags bulk edit'
-      TabOrder = 3
+      OnClick = btnBulkEditCHARClick
+      TabOrder = 1
     end
   end
   object MainMenu: TMainMenu

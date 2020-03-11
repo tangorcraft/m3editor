@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls,
-  ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles;
+  ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles, uCHARBulkEdit;
 
 type
 
@@ -37,6 +37,7 @@ type
     OpenStructDialog: TOpenDialog;
     PanelMain: TPanel;
     SaveDialog: TSaveDialog;
+    procedure btnBulkEditCHARClick(Sender: TObject);
     procedure btnTreeViewEditorClick(Sender: TObject);
     procedure cbAskOnCharAutoUpdateChange(Sender: TObject);
     procedure cbAskOnJumpToChange(Sender: TObject);
@@ -125,6 +126,16 @@ begin
     Application.CreateForm(TFTagEditor,FTagEditor);
     FTagEditor.ShowEditor(FM3File,false);
     btnTreeViewEditor.Enabled := false;
+  end;
+end;
+
+procedure TFMain.btnBulkEditCHARClick(Sender: TObject);
+begin
+  with TFCHARBulkEdit.Create(Self) do
+  try
+    ShowEditor(FM3File);
+  finally
+    Free;
   end;
 end;
 
