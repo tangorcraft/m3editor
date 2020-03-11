@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls,
-  ExtCtrls, ustructures, uM3File, uTagEditor;
+  ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles;
 
 type
 
@@ -15,6 +15,11 @@ type
   TFMain = class(TForm)
     btnTreeViewEditor: TButton;
     BMeshEditor: TButton;
+    btnBulkEditCHAR: TButton;
+    cbAskOnJumpTo: TCheckBox;
+    cbAskOnCharAutoUpdate: TCheckBox;
+    cbRememberStructFile: TCheckBox;
+    gbOptions: TGroupBox;
     lblLastFile: TLabel;
     lblStruct: TLabel;
     MainMenu: TMainMenu;
@@ -32,8 +37,10 @@ type
     OpenStructDialog: TOpenDialog;
     PanelMain: TPanel;
     SaveDialog: TSaveDialog;
-    Splitter: TSplitter;
     procedure btnTreeViewEditorClick(Sender: TObject);
+    procedure cbAskOnCharAutoUpdateChange(Sender: TObject);
+    procedure cbAskOnJumpToChange(Sender: TObject);
+    procedure cbRememberStructFileChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -66,6 +73,7 @@ type
 
 var
   FMain: TFMain;
+  IniMain: TIniFile;
 
 implementation
 
@@ -78,18 +86,36 @@ var
   i: integer;
 begin
   FAppPath := ExtractFilePath(Application.ExeName);
+  IniMain := TIniFile.Create(FAppPath+'settings.ini');
+  cbAskOnJumpTo.Checked := IniMain.ReadBool('treeView','askOnJump',true);
+  cbAskOnCharAutoUpdate.Checked := IniMain.ReadBool('treeView','askCHARAuto',true);
+  FStructFileName := IniMain.ReadString('main','struct',FAppPath+'structures.xml');
+  cbRememberStructFile.Checked := IniMain.ReadBool('main','rememberStruct',false);
   Structures := TM3Structures.Create;
   FM3File := TM3File.Create;
   FModified := False;
-  if FileExists(FAppPath+'structures.xml') then
+  if cbRememberStructFile.Checked then
   begin
+    if not FileExists(FStructFileName) then
+    begin
+      Log('Can''t find "%s"',[FStructFileName]);
+      FStructFileName := FAppPath+'structures.xml';
+      IniMain.WriteString('main','struct',FStructFileName);
+    end;
+  end
+  else
     FStructFileName := FAppPath+'structures.xml';
+  if FileExists(FStructFileName) then
+  begin
     Log('Loading structures info from "%s"',[FStructFileName]);
     Structures.LoadStructures(FStructFileName);
     UpdateLabels;
   end
   else
-    Log('Can'' find "%s"',[FAppPath+'structures.xml']);
+  begin
+    Log('Can''t find "%s"',[FStructFileName]);
+    FStructFileName := '';
+  end;
 end;
 
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
@@ -100,6 +126,23 @@ begin
     FTagEditor.ShowEditor(FM3File,false);
     btnTreeViewEditor.Enabled := false;
   end;
+end;
+
+procedure TFMain.cbRememberStructFileChange(Sender: TObject);
+begin
+  IniMain.WriteBool('main','rememberStruct',cbRememberStructFile.Checked);
+  if cbRememberStructFile.Checked then
+    IniMain.WriteString('main','struct',FStructFileName);
+end;
+
+procedure TFMain.cbAskOnCharAutoUpdateChange(Sender: TObject);
+begin
+  IniMain.WriteBool('treeView','askCHARAuto',cbAskOnCharAutoUpdate.Checked);
+end;
+
+procedure TFMain.cbAskOnJumpToChange(Sender: TObject);
+begin
+  IniMain.WriteBool('treeView','askOnJump',cbAskOnJumpTo.Checked);
 end;
 
 procedure TFMain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -122,6 +165,7 @@ begin
   FTagEditor.Free;
   Structures.Free;
   FM3File.Free;
+  IniMain.Free;
 end;
 
 procedure TFMain.MFileOpenClick(Sender: TObject);
@@ -182,6 +226,7 @@ begin
     FStructFileName := OpenStructDialog.FileName;
     Log('Loading structures info from "%s"',[FStructFileName]);
     Structures.LoadStructures(FStructFileName);
+    IniMain.WriteString('main','struct',FStructFileName);
     StructuresUpdate;
   end;
 end;

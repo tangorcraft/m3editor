@@ -8,6 +8,7 @@ object FEditFloat: TFEditFloat
   Caption = 'Edit float value'
   ClientHeight = 102
   ClientWidth = 252
+  Position = poOwnerFormCenter
   LCLVersion = '2.0.0.4'
   object BOk: TButton
     Left = 8

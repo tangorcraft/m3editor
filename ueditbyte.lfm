@@ -8,6 +8,7 @@ object FEditByte: TFEditByte
   Caption = 'Edit integer value (1 byte)'
   ClientHeight = 145
   ClientWidth = 326
+  Position = poOwnerFormCenter
   LCLVersion = '2.0.0.4'
   object BOk: TButton
     Left = 8

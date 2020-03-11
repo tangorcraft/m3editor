@@ -7,6 +7,7 @@ object FEditFlags: TFEditFlags
   ClientHeight = 423
   ClientWidth = 504
   OnClose = FormClose
+  Position = poOwnerFormCenter
   LCLVersion = '2.0.0.4'
   object cbValues: TCheckGroup
     Left = 8
