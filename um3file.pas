@@ -24,6 +24,8 @@ type
 
     procedure InitEmptyModel(const NewTagCount: Integer);
 
+    procedure ResetRefFrom;
+
     property Tags[Index: Integer]: PM3Structure read GetTag; default;
     property TagCount: Integer read GetTagCount;
   end;
@@ -31,11 +33,7 @@ type
 implementation
 
 uses
-  umain;
-
-const
-  headerTag33 = $4D443333;
-  headerTag34 = $4D443334;
+  umain, uCommon;
 
 type
   m3TagListItem = packed record
@@ -137,7 +135,7 @@ procedure TM3File.SaveM3File(const FileName: string);
 var
   F: TFileStream;
   tagList: array of m3TagListItem;
-  i, off, tagDataSize: integer;
+  i, off: integer;
 begin
   if (Pm3Header(FTags[0].Data)^.tag <> headerTag33) and (Pm3Header(FTags[0].Data)^.tag <> headerTag34) then
   begin
@@ -191,6 +189,47 @@ begin
     DataSize := 16;
     ItemSize := 0;
     ItemCount := 0;
+  end;
+end;
+
+procedure TM3File.ResetRefFrom;
+var
+  i, j, k, idx: Integer;
+  pRef: Pm3ref_small;
+begin
+  // this function have 5 (five) indexes and 3 (three) nested loops
+  // stay strong and don't get lost
+  for i := 0 to TagCount - 1 do
+    SetLength(FTags[i].RefFrom,0);
+  for i := 0 to TagCount - 1 do
+  begin
+    Structures.GetStructureInfo(FTags[i]);
+    with FTags[i] do
+    if ItemSize >= sizeof(m3ref_small) then
+    begin
+      for j := 0 to length(ItemFields)-1 do
+      begin
+        if (ItemFields[j].fType in [ftRef,ftRefSmall]) then
+          for idx := 0 to ItemCount-1 do
+          begin
+            pRef := Data + (ItemSize*idx) + ItemFields[j].fOffset;
+            with pRef^ do
+            if (refCount > 0) and (refIndex > 0) and (refIndex < TagCount) then
+            begin
+              k := length(FTags[refIndex].RefFrom);
+              SetLength(FTags[refIndex].RefFrom, k+1);
+              FTags[refIndex].RefFrom[k].rfTagIndex := i;
+              FTags[refIndex].RefFrom[k].rfItemIndex := idx;
+              FTags[refIndex].RefFrom[k].frFieldRow := j + 1;
+              FTags[refIndex].RefFrom[k].rfRefFieldOffset := (ItemSize*idx) + ItemFields[j].fOffset;
+              FTags[refIndex].RefFrom[k].rfName := Format(
+                '%d: %s [%d] -> %s (refCount = %d)',
+                [i, FTags[i].StructName, idx, ItemFields[j].fGroupName+ItemFields[j].fName, refCount]
+              );
+            end;
+          end;
+      end;
+    end;
   end;
 end;
 

@@ -70,7 +70,6 @@ type
 
     procedure UpdateLabels;
     procedure StructuresUpdate;
-    procedure ResetRefFrom;
   public
     procedure Log(const S: string);
     procedure Log(const Fmt : string; const Args : Array of const);
@@ -84,6 +83,9 @@ var
   IniMain: TIniFile;
 
 implementation
+
+uses
+  uCommon;
 
 {$R *.lfm}
 
@@ -275,48 +277,7 @@ begin
 
   if FTagEditor <> nil then
     FTagEditor.ResetTagTree;
-  ResetRefFrom;
-end;
-
-procedure TFMain.ResetRefFrom;
-var
-  i, j, k, idx: Integer;
-  pRef: Pm3ref_small;
-begin
-  // this function have 5 (five) indexes and 3 (three) loops
-  // stay strong and don't get lost
-  for i := 0 to FM3File.TagCount - 1 do
-    SetLength(FM3File[i]^.RefFrom,0);
-  for i := 0 to FM3File.TagCount - 1 do
-  begin
-    Structures.GetStructureInfo(FM3File[i]^);
-    with FM3File[i]^ do
-    if ItemSize >= sizeof(m3ref_small) then
-    begin
-      for j := 0 to length(ItemFields)-1 do
-      begin
-        if (ItemFields[j].fType in [ftRef,ftRefSmall]) then
-          for idx := 0 to ItemCount-1 do
-          begin
-            pRef := Data + (ItemSize*idx) + ItemFields[j].fOffset;
-            with pRef^ do
-            if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
-            begin
-              k := length(FM3File[refIndex]^.RefFrom);
-              SetLength(FM3File[refIndex]^.RefFrom, k+1);
-              FM3File[refIndex]^.RefFrom[k].rfTagIndex := i;
-              FM3File[refIndex]^.RefFrom[k].rfItemIndex := idx;
-              FM3File[refIndex]^.RefFrom[k].frFieldRow := j + 1;
-              FM3File[refIndex]^.RefFrom[k].rfRefFieldOffset := (ItemSize*idx) + ItemFields[j].fOffset;
-              FM3File[refIndex]^.RefFrom[k].rfName := Format(
-                '%d: %s [%d] -> %s (refCount = %d)',
-                [i, FM3File[i]^.StructName, idx, ItemFields[j].fGroupName+ItemFields[j].fName, refCount]
-              );
-            end;
-          end;
-      end;
-    end;
-  end;
+  FM3File.ResetRefFrom;
 end;
 
 procedure TFMain.Log(const S: string);
@@ -343,7 +304,7 @@ end;
 procedure TFMain.ModelChanged(const Changer: TForm);
 begin
   FModified := true;
-  ResetRefFrom;
+  FM3File.ResetRefFrom;
   if (FTagEditor <> nil) and (Changer <> FTagEditor) then
     FTagEditor.ResetTagTree;
 end;

@@ -7,6 +7,11 @@ interface
 uses
   Classes, SysUtils, Laz2_DOM, ustructures;
 
+const
+  headerTag33 = $4D443333;
+  headerTag34 = $4D443334;
+  CHARTag     = $43484152;
+
 function M3FloatToStr(const F: Single): string;
 
 function FieldValToStr(const F: TM3Field): string;
@@ -15,8 +20,14 @@ function GetTreeTagName(const tag: TM3Structure): string;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
 procedure NextDOMElement(var el: TDOMElement);
+function FindDOMElement(const el: TDOMElement; const ElementName: DOMString): TDOMElement;
+
+function IsValidM3File(const FileName: string): boolean;
 
 implementation
+
+uses
+  strutils;
 
 function FieldValToStr(const F: TM3Field): string;
 var
@@ -118,6 +129,31 @@ begin
     el := nil
   else
     el := n as TDOMElement;
+end;
+
+function FindDOMElement(const el: TDOMElement; const ElementName: DOMString): TDOMElement;
+var
+  n: TDOMNode;
+begin
+  n := el.FindNode(ElementName);
+  if (n = nil) or not (n is TDOMElement) then
+    Result := nil
+  else
+    Result := n as TDOMElement;
+end;
+
+function IsValidM3File(const FileName: string): boolean;
+var
+  tag: UInt32;
+begin
+  Result := false;
+  with TFileStream.Create(FileName,fmShareDenyNone) do
+  try
+    if Read(tag,4) <> 4 then Exit;
+    if (tag = headerTag33) or (tag = headerTag34) then Result := true;
+  finally
+    Free;
+  end;
 end;
 
 end.
