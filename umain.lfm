@@ -135,6 +135,17 @@ object FMain: TFMain
         Caption = 'Save as ...'
         OnClick = MSaveAsClick
       end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object MSaveM3ML: TMenuItem
+        Caption = 'Export to M3ML ...'
+        OnClick = MSaveM3MLClick
+      end
+      object MOpenM3ML: TMenuItem
+        Caption = 'Open M3ML ...'
+        Visible = False
+      end
       object N1: TMenuItem
         Caption = '-'
       end
@@ -156,6 +167,7 @@ object FMain: TFMain
     end
     object MModel: TMenuItem
       Caption = 'Model'
+      Enabled = False
       object MCheckCHARRef: TMenuItem
         Caption = 'Check CHAR references'
       end
@@ -164,21 +176,18 @@ object FMain: TFMain
       end
       object MExport: TMenuItem
         Caption = 'Export'
-        object MExportM3ML: TMenuItem
-          Caption = 'Export to M3ML ...'
-          OnClick = MExportM3MLClick
-        end
       end
     end
   end
   object OpenDialog: TOpenDialog
-    Filter = 'Model/Animation Files|*.m3;*.m3a|Model Files|*.m3|Animation Files|*.m3a|All Files|*.*'
+    Filter = 'Model/Animation Files|*.m3;*.m3a;*.m3ml|Model Files|*.m3|Animation Files|*.m3a|M3ML Files|*.m3ml|All Files|*.*'
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 152
     top = 360
   end
   object SaveDialog: TSaveDialog
-    Filter = 'M3 Model File|*.m3'
+    DefaultExt = '.m3'
+    Filter = 'M3 Model/Animations File|*.m3;*.m3a'
     Options = [ofOverwritePrompt, ofPathMustExist, ofEnableSizing, ofViewDetail]
     left = 152
     top = 429
@@ -189,5 +198,13 @@ object FMain: TFMain
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 248
     top = 360
+  end
+  object SaveM3MLDialog: TSaveDialog
+    Title = 'Export M3ML to'
+    DefaultExt = '.m3ml'
+    Filter = 'M3ML Files|*.m3ml|XML Files|*.xml'
+    Options = [ofOverwritePrompt, ofPathMustExist, ofEnableSizing, ofViewDetail]
+    left = 248
+    top = 429
   end
 end

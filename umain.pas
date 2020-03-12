@@ -26,7 +26,9 @@ type
     MainMenu: TMainMenu;
     MemoLog: TMemo;
     MCheckCHARRef: TMenuItem;
-    MExportM3ML: TMenuItem;
+    MOpenM3ML: TMenuItem;
+    N3: TMenuItem;
+    MSaveM3ML: TMenuItem;
     N2: TMenuItem;
     MExport: TMenuItem;
     MModel: TMenuItem;
@@ -43,6 +45,7 @@ type
     OpenStructDialog: TOpenDialog;
     PanelMain: TPanel;
     SaveDialog: TSaveDialog;
+    SaveM3MLDialog: TSaveDialog;
     procedure btnBulkEditCHARClick(Sender: TObject);
     procedure btnTreeViewEditorClick(Sender: TObject);
     procedure cbAskOnCharAutoUpdateChange(Sender: TObject);
@@ -51,10 +54,10 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure MExportM3MLClick(Sender: TObject);
     procedure MFileOpenClick(Sender: TObject);
     procedure MSaveAsClick(Sender: TObject);
     procedure MSaveClick(Sender: TObject);
+    procedure MSaveM3MLClick(Sender: TObject);
     procedure MStructOpenClick(Sender: TObject);
     procedure MStructReloadClick(Sender: TObject);
   private
@@ -188,11 +191,6 @@ begin
   IniMain.Free;
 end;
 
-procedure TFMain.MExportM3MLClick(Sender: TObject);
-begin
-  ExportToM3ML(FM3File,FAppPath+'test.m3ml');
-end;
-
 procedure TFMain.MFileOpenClick(Sender: TObject);
 var
   i: integer;
@@ -209,10 +207,20 @@ begin
   if OpenDialog.Execute then
   begin
     Log('Opening "%s"',[OpenDialog.FileName]);
-    FCurrentFileName := OpenDialog.FileName;
-    FM3File.LoadM3File(OpenDialog.FileName);
-    FModified := false;
-    Log('%d tags loaded from "%s"',[FM3File.TagCount, OpenDialog.FileName]);
+    if IsValidM3File(OpenDialog.FileName) then
+    begin
+      FCurrentFileName := OpenDialog.FileName;
+      FM3File.LoadM3File(OpenDialog.FileName);
+      FModified := false;
+      Log('%d tags loaded from "%s"',[FM3File.TagCount, OpenDialog.FileName]);
+    end
+    else
+    begin
+      Log('Parsing M3ML file: "%s"',[OpenDialog.FileName]);
+      ImportFromM3ML(FM3File, OpenDialog.FileName);
+      FModified := true;
+      FCurrentFileName := '';
+    end;
     StructuresUpdate;
     UpdateLabels;
   end;
@@ -233,7 +241,11 @@ end;
 
 procedure TFMain.MSaveClick(Sender: TObject);
 begin
-  if (FCurrentFileName = '') or (not DirectoryExists(ExtractFileDir(FCurrentFileName))) then Exit;
+  if (FCurrentFileName = '') or (not DirectoryExists(ExtractFileDir(FCurrentFileName))) then
+  begin
+    MSaveAsClick(nil);
+    Exit;
+  end;
   if FileExists(FCurrentFileName) and (FCurrentFileName <> FLastSavedFileName) then
   begin
     if MessageDlg('Save file','Replace file "'+FCurrentFileName+'"?',mtConfirmation,mbOKCancel,0)<>mrOK then Exit;
@@ -242,6 +254,14 @@ begin
   FM3File.SaveM3File(FCurrentFileName);
   FModified := false;
   FLastSavedFileName := FCurrentFileName;
+end;
+
+procedure TFMain.MSaveM3MLClick(Sender: TObject);
+begin
+  if SaveM3MLDialog.Execute then
+  begin
+    ExportToM3ML(FM3File,SaveM3MLDialog.FileName);
+  end;
 end;
 
 procedure TFMain.MStructOpenClick(Sender: TObject);

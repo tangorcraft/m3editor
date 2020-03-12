@@ -202,6 +202,8 @@ type
     function GetStructureInfo(var m3Tag: TM3Structure): boolean;
     procedure GetTagSize(var m3Tag: TM3Structure);
 
+    function GetTagInfoFromName(var m3Tag: TM3Structure): boolean;
+
     property MD5String: string read FMD5Str;
   end;
 
@@ -209,6 +211,8 @@ var
   Structures: TM3Structures;
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
+function FieldTypeFromStr(const S: string): TM3FieldTypes;
+function FieldSizeFromType(const fType: TM3FieldTypes): integer;
 
 implementation
 
@@ -295,7 +299,7 @@ function GetStructByName(domRoot: TDOMElement; const Name: string): TDOMElement;
 var
   el: TDOMElement;
 begin
-  el := domRoot.FirstChild as TDOMElement;
+  el := GetChildDOMElement(domRoot);
   while Assigned(el) do
   begin
     if (el.TagName = 'structure') and (el['name']=Name) then
@@ -680,6 +684,29 @@ begin
   end
   else
     ItemSize := DataSize;
+end;
+
+function TM3Structures.GetTagInfoFromName(var m3Tag: TM3Structure): boolean;
+var
+  i: Integer;
+begin
+  Result := false;
+  for i := 0 to length(FTagInfos)-1 do
+    if FTagInfos[i].Name = m3Tag.StructName then
+    begin
+      m3Tag.Tag := FTagInfos[i].Tag;
+      Result := true;
+      Break;
+    end;
+  if Result then
+  begin
+    for i := 0 to length(FTagInfos)-1 do
+      if (FTagInfos[i].Tag = m3Tag.Tag) and (FTagInfos[i].Ver = m3Tag.Ver) then
+      begin
+        m3Tag.ItemSize := FTagInfos[i].Size;
+        Exit;
+      end;
+  end;
 end;
 
 end.
