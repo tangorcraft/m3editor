@@ -68,13 +68,7 @@ begin
   end;
   l := Struct.ItemCount;
   ResizeStructure(Struct,length(Val)+1);
-  p := Struct.Data;
-  for i := 1 to length(Val) do
-  begin
-    PAnsiChar(p)^ := Val[i];
-    inc(p);
-  end;
-  PAnsiChar(p)^ := #0;
+  StrPCopy(Struct.Data,Val);
   if (Length(Struct.RefFrom) > 0) and (Struct.ItemCount <> l) and (cbAutoUpdate.Checked) then
   begin
     for i := 0 to length(Struct.RefFrom)-1 do

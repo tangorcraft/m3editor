@@ -351,13 +351,7 @@ begin
       s := Edit.Text;
       l := FM3Struct^.ItemCount;
       ResizeStructure(FM3Struct^,length(s)+1);
-      p := FM3Struct^.Data;
-      for i := 1 to length(s) do
-      begin
-        PAnsiChar(p)^ := s[i];
-        inc(p);
-      end;
-      PAnsiChar(p)^ := #0;
+      StrPCopy(FM3Struct^.Data,s);
       if (Length(FM3Struct^.RefFrom) > 0) and (FM3Struct^.ItemCount <> l) and
          (MessageDlg(
            'References update',
@@ -534,7 +528,6 @@ end;
 procedure TFTagEditor.ResetTagTree;
 var
   i: Integer;
-  s: string;
 begin
   treeTags.Items.Clear;
   for i := 0 to FM3File.TagCount-1 do
