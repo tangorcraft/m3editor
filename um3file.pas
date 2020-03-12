@@ -25,6 +25,7 @@ type
     procedure InitEmptyModel(const NewTagCount: Integer);
 
     procedure ResetRefFrom;
+    function RepairReferenceCount: Integer;
 
     property Tags[Index: Integer]: PM3Structure read GetTag; default;
     property TagCount: Integer read GetTagCount;
@@ -231,6 +232,26 @@ begin
       end;
     end;
   end;
+end;
+
+function TM3File.RepairReferenceCount: Integer;
+var
+  i, j: Integer;
+  p: Pm3ref_small;
+begin
+  ResetRefFrom;
+  Result := 0;
+  for i := 0 to TagCount-1 do
+    for j := 0 to length(FTags[i].RefFrom)-1 do
+    with FTags[i].RefFrom[j] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      if p^.refCount <> FTags[i].ItemCount then
+      begin
+        p^.refCount := FTags[i].ItemCount;
+        inc(Result);
+      end;
+    end;
 end;
 
 end.

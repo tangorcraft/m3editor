@@ -70,7 +70,6 @@ end;
 procedure ExportToM3ML(const Model: TM3File; const FileName: string);
 var
   i, j, k: Integer;
-  off: Integer;
   m3ml: TXMLDocument;
   root, m3tag, item, el: TDOMElement;
 begin
@@ -185,7 +184,7 @@ end;
 
 function GuessTagValue(const Name: String): UInt32;
 var
-  i, l: integer;
+  l: integer;
   arr: packed array[0..3] of Byte;
 begin
   Result := 0;
@@ -288,7 +287,6 @@ end;
 
 procedure ReadM3Tag(var Struct: TM3Structure; const Idx: Integer; const m3tag: TDOMElement);
 var
-  i: Integer;
   L: Integer;
   s: string;
   t: TM3FieldTypes;
@@ -383,7 +381,7 @@ var
   i, j: Integer;
   max: Integer;
   m3ml: TXMLDocument;
-  root, m3tag, item, el: TDOMElement;
+  root, m3tag: TDOMElement;
 begin
   m3ml:= TXMLDocument.Create;
   try

@@ -95,8 +95,6 @@ uses
 { TFMain }
 
 procedure TFMain.FormCreate(Sender: TObject);
-var
-  i: integer;
 begin
   FAppPath := ExtractFilePath(Application.ExeName);
   IniMain := TIniFile.Create(FAppPath+'settings.ini');
@@ -182,8 +180,6 @@ begin
 end;
 
 procedure TFMain.FormDestroy(Sender: TObject);
-var
-  i: integer;
 begin
   FTagEditor.Free;
   Structures.Free;
@@ -192,8 +188,6 @@ begin
 end;
 
 procedure TFMain.MFileOpenClick(Sender: TObject);
-var
-  i: integer;
 begin
   if
     FModified and
@@ -218,6 +212,8 @@ begin
     begin
       Log('Parsing M3ML file: "%s"',[OpenDialog.FileName]);
       ImportFromM3ML(FM3File, OpenDialog.FileName);
+      Log('Scanning for possible reference count mismatch.');
+      Log('Reference count mismatch found and repaired: %d',[FM3File.RepairReferenceCount]);
       FModified := true;
       FCurrentFileName := '';
     end;
@@ -260,6 +256,7 @@ procedure TFMain.MSaveM3MLClick(Sender: TObject);
 begin
   if SaveM3MLDialog.Execute then
   begin
+    Log('Exporting model data to "%s"',[SaveM3MLDialog.FileName]);
     ExportToM3ML(FM3File,SaveM3MLDialog.FileName);
   end;
 end;

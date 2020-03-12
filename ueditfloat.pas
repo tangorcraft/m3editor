@@ -39,8 +39,6 @@ uses
 { TFEditFloat }
 
 procedure TFEditFloat.BResetClick(Sender: TObject);
-var
-  s: string;
 begin
   Edit.Text := FloatToStr(FInitValue,FloatDotFormat);
 end;

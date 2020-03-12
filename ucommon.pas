@@ -35,6 +35,7 @@ var
   i: integer;
   v: UInt32;
 begin
+  Result := '';
   case F.fType of
     ftBinary: Result := Format('{Binary Data, size=%d}',[F.fSize]);
     ftUInt8: Result := Format('%u (0x%s)',[pUInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
