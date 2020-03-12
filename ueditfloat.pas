@@ -42,15 +42,15 @@ procedure TFEditFloat.BResetClick(Sender: TObject);
 var
   s: string;
 begin
-  Edit.Text := M3FloatToStr(FInitValue);
+  Edit.Text := FloatToStr(FInitValue,FloatDotFormat);
 end;
 
 procedure TFEditFloat.EditChange(Sender: TObject);
 var
   f: single;
 begin
-  f := StrToFloatDef(Edit.Text,0);
-  lblValue.Caption := Format('Value: %s',[M3FloatToStr(f)]);
+  f := StrToFloatDef(Edit.Text,0,FloatDotFormat);
+  lblValue.Caption := Format('Value: %s',[FloatToStr(f,FloatDotFormat)]);
   lblExp.Caption := Format('Scientific: %e',[f]);
 end;
 

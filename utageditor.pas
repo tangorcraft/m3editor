@@ -449,7 +449,7 @@ begin
     case ShowModal of
       mrOK:
         begin
-          PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0);
+          PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0,FloatDotFormat);
           FMain.ModelChanged(Self);
           UpdateItemTable;
         end;

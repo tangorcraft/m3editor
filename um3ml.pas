@@ -16,7 +16,7 @@ var
 implementation
 
 uses
-  uCommon;
+  umain, uCommon;
 
 procedure SetFieldValueBinary(const el: TDOMElement; const fData: Pointer; const fSize: Integer);
 var
@@ -32,7 +32,8 @@ begin
   begin
     s := s + IntToHex(PByte(p)^,2);
     if (i mod 16) = 0 then s := s + #13#10
-    else if (i mod 4) = 0 then s := s + ' ';
+    else if (i mod 4) = 0 then s := s + ' | '
+    else s := s + ' ';
     inc(p);
     inc(i);
   end;
@@ -44,25 +45,25 @@ end;
 procedure SetFieldValue(const el: TDOMElement; const F: TM3Field);
 begin
   case F.fType of
-    ftBinary: SetFieldValueBinary(el,F.fData,F.fSize);
     ftUInt8: el['value'] := IntToStr(pUInt8(F.fData)^);
     ftUInt16: el['value'] := IntToStr(pUInt16(F.fData)^);
     ftUInt32: el['value'] := IntToStr(pUInt32(F.fData)^);
     ftInt8: el['value'] := IntToStr(pInt8(F.fData)^);
     ftInt16: el['value'] := IntToStr(pInt16(F.fData)^);
     ftInt32: el['value'] := IntToStr(pInt32(F.fData)^);
-    ftFloat: el['value'] := M3FloatToStr(PSingle(F.fData)^);
+    ftFloat: el['value'] := FloatToStr(PSingle(F.fData)^,FloatDotFormat);
     ftRef: with Pm3ref(F.fData)^ do
       begin
         el['refIdx'] := IntToStr(refIndex);
         el['refCnt'] := IntToStr(refCount);
-        el['refFlag']:= IntToHex(refFlags,8);
+        el['refFlag']:= '0x'+IntToHex(refFlags,8);
       end;
     ftRefSmall: with Pm3ref_small(F.fData)^ do
       begin
         el['refIdx'] := IntToStr(refIndex);
         el['refCnt'] := IntToStr(refCount);
       end;
+    else SetFieldValueBinary(el,F.fData,F.fSize);
   end;
 end;
 
@@ -86,6 +87,7 @@ begin
       m3tag['idx'] := IntToStr(Index);
       m3tag['name'] := StructName;
       m3tag['ver'] := IntToStr(Ver);
+      m3tag['itemSize'] := IntToStr(ItemSize);
       for j := 0 to length(RefFrom)-1 do
       begin
         item := m3ml.CreateElement('refFrom');
@@ -98,9 +100,9 @@ begin
       end
       else
       begin
-        m3tag['itemSize'] := IntToStr(ItemSize);
         if (ItemSize = 1)and(ItemCount > 8) then
         begin
+          m3tag['binary'] := '1';
           item := m3ml.CreateElement('data');
           m3tag.AppendChild(item);
           SetFieldValueBinary(item,Data,ItemCount);

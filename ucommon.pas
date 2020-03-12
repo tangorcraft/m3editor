@@ -12,7 +12,8 @@ const
   headerTag34 = $4D443334;
   CHARTag     = $43484152;
 
-function M3FloatToStr(const F: Single): string;
+var
+  FloatDotFormat: TFormatSettings;
 
 function FieldValToStr(const F: TM3Field): string;
 function RepeatStr(const str: string; count: integer): string;
@@ -42,7 +43,7 @@ begin
     ftInt8: Result := Format('%d (0x%s)',[pInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
     ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
     ftInt32: Result := Format('%d (0x%0:.8x)',[pInt32(F.fData)^]);
-    ftFloat: Result := Format('%s (0x%.8x)',[M3FloatToStr(PSingle(F.fData)^),pUInt32(F.fData)^]);
+    ftFloat: Result := Format('%s (0x%.8x)',[FloatToStr(PSingle(F.fData)^,FloatDotFormat),pUInt32(F.fData)^]);
     ftRef: with Pm3ref(F.fData)^ do
       Result := Format('refIdx: %d (Cnt: %d) (Flags = 0x%.8x)',[refIndex,refCount,refFlags]);
     ftRefSmall: with Pm3ref_small(F.fData)^ do
@@ -88,21 +89,6 @@ begin
       s := 'V'+IntToStr(tag.Ver)+', ';
     result := Format('%d: %s (%sCnt %d)',[tag.Index,tag.StructName,s,tag.ItemCount]);
   end;
-end;
-
-function M3FloatToStr(const F: Single): string;
-var
-  i: integer;
-begin
-  Str(F:0:18, Result);
-  If Result[1] = ' ' Then
-    System.Delete(Result, 1, 1);
-
-  i := length(Result);
-  while (i > 3) and (Result[i] = '0') do
-    dec(i);
-  Result := copy(Result,1,i);
-
 end;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
@@ -156,5 +142,8 @@ begin
   end;
 end;
 
+initialization
+  FloatDotFormat.DecimalSeparator := '.';
+  FloatDotFormat.ThousandSeparator := '.';
 end.
 
