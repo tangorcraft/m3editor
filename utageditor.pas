@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Grids, ComCtrls, ustructures, uM3File, uEditString, uEditInteger,
-  uEditFlags, uEditWord, uEditByte, uEditFloat;
+  uEditFlags, uEditWord, uEditByte, uEditFloat, uRefEdit;
 
 type
 
@@ -52,6 +52,7 @@ type
     procedure EditInt32Field(const F: TM3Field);
     procedure EditFloatField(const F: TM3Field);
     procedure EditFlagField(const F: TM3Field);
+    procedure EditRefField(const F: TM3Field);
   public
     procedure ShowEditor(const M3File: TM3File; const Modal: boolean = false);
     procedure ResetTagTree;
@@ -65,77 +66,13 @@ var
 implementation
 
 uses
-  umain;
+  umain, uCommon;
 
 const
   COL_Name = 0;
   COL_Type = 1;
   COL_Info = 2;
   COL_Value = 3;
-
-function IndexZeros(const Index, ZeroCount: integer): string;
-begin
-  Result := IntToStr(Index);
-  while length(Result) < ZeroCount do
-    Result := '0' + Result;
-end;
-
-function FieldValToStr(const F: TM3Field): string;
-var
-  i: integer;
-  v: UInt32;
-begin
-  case F.fType of
-    ftBinary: Result := Format('{Binary Data, size=%d}',[F.fSize]);
-    ftUInt8: Result := Format('%d (0x%s)',[pUInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
-    ftUInt16: Result := Format('%d (0x%s)',[pUInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
-    ftUInt32: Result := Format('%d (0x%0:.8x)',[pUInt32(F.fData)^]);
-    ftInt8: Result := Format('%d (0x%s)',[pInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
-    ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
-    ftInt32: Result := Format('%d (0x%0:.8x)',[pInt32(F.fData)^]);
-    ftFloat: Result := Format('%s (0x%.8x)',[M3FloatToStr(PSingle(F.fData)^),pUInt32(F.fData)^]);
-    ftSubStruct: Result := '{Sub Structure: "' + F.fTypeName + '"}';
-  end;
-  if F.fTypeFlag then
-  begin
-    v := 1;
-    for i := 0 to 31 do
-    begin
-      if (F.fTypeFlagBits[i] <> '') and ((pUInt32(F.fData)^ and v) <> 0) then
-        Result := Result + ' ' + F.fTypeFlagBits[i];
-      v := v shl 1;
-    end;
-  end;
-end;
-
-function RepeatStr(const str: string; count: integer): string;
-begin
-  Result := '';
-  while count > 0 do
-  begin
-    dec(count);
-    Result := Result + str;
-  end;
-end;
-
-function GetTreeTagName(const tag: TM3Structure): string;
-var
-  s: string;
-begin
-  if tag.StructName = 'CHAR' then
-  begin
-    s := PChar(tag.Data);
-    Result:=Format('%d: %s (%d) "%s"',[tag.Index,tag.StructName,length(s)+1,s]);
-  end
-  else
-  begin
-    if tag.Ver = 0 then
-      s := ''
-    else
-      s := 'V'+IntToStr(tag.Ver)+', ';
-    result := Format('%d: %s (%sCnt %d)',[tag.Index,tag.StructName,s,tag.ItemCount]);
-  end;
-end;
 
 {$R *.lfm}
 
@@ -261,7 +198,8 @@ begin
           EditInt32Field(FM3Struct^.ItemFields[idx]);
       end;
     ftFloat: EditFloatField(FM3Struct^.ItemFields[idx]);
-    ftSubStruct: ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
+    ftRef, ftRefSmall: EditRefField(FM3Struct^.ItemFields[idx]);
+    else ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
   end;
   idx := idx - length(FM3Struct^.ItemFields);
   if (idx >= 0) and (idx < length(FM3Struct^.RefFrom)) then
@@ -356,46 +294,36 @@ begin
   begin
     fData := FM3Struct^.Data + fOffset + off;
     TableView.Cells[COL_Name,i+1] := RepeatStr('- ',fSubLevel)+fGroupName+fName;
-    if fRefTo = '' then
-      TableView.Cells[COL_Type,i+1] := fTypeName
-    else
-      TableView.Cells[COL_Type,i+1] := fTypeName + '; refTo -> ' + fRefTo;
+
+    TableView.Cells[COL_Type,i+1] := fTypeName;
     ref := '';
-    if fType = ftSubStruct then
-    begin
-      TableView.Cells[COL_Info,i+1] := fTypeInfo;
-      {if fTypeName = 'Reference' then
-      with Pm3ref(fData)^ do
-      begin
-        if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
+    case fType of
+      ftSubStruct:
+        TableView.Cells[COL_Info,i+1] := fTypeInfo;
+      ftRef,ftRefSmall:
+        with Pm3ref_small(fData)^ do
         begin
-          ref := GetTreeTagName(FM3File[refIndex]^);
-          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
-        end;
-      end
-      else}
-      if (fTypeName = 'SmallReference') or (fTypeName = 'Reference') then
-      with Pm3ref_small(fData)^ do
-      begin
-        if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
+          if fRefTo <> '' then
+            TableView.Cells[COL_Info,i+1] := 'Should reference ' + fRefTo;
+          if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
+          begin
+            ref := GetTreeTagName(FM3File[refIndex]^);
+            treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+          end;
+        end
+      else
         begin
-          ref := GetTreeTagName(FM3File[refIndex]^);
-          treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+          s := '';
+          if fTypeFlag then s += 'Flags; '
+          else if fDefault <> '' then s += 'Default = "'+fDefault+'"; '
+          else if fExpected <> '' then s += 'Expected = "'+fExpected+'";';
+          TableView.Cells[COL_Info,i+1] := s;
         end;
-      end
-    end
-    else
-    begin
-      s := '';
-      if fTypeFlag then s += 'Flags; '
-      else if fDefault <> '' then s += 'Default = "'+fDefault+'"; '
-      else if fExpected <> '' then s += 'Expected = "'+fExpected+'";';
-      TableView.Cells[COL_Info,i+1] := s;
     end;
     if ref = '' then
       TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i])
     else
-      TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i]) + '; Actual refTo -> ' + ref;
+      TableView.Cells[COL_Value,i+1] := FieldValToStr(FM3Struct^.ItemFields[i]) + ' -> ' + ref;
   end;
   off := length(FM3Struct^.ItemFields)+1;
   for i := 0 to length(FM3Struct^.RefFrom)-1 do
@@ -574,6 +502,18 @@ begin
         end;
       mrRetry: EditFlagField(F);
     end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFTagEditor.EditRefField(const F: TM3Field);
+begin
+  with TFRefEdit.Create(Self) do
+  try
+    ShowEditor(FM3File,F,FM3Struct^.Index);
+    FMain.ModelChanged(Self);
+    UpdateItemTable;
   finally
     Free;
   end;

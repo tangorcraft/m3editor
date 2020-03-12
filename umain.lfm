@@ -154,6 +154,22 @@ object FMain: TFMain
         OnClick = MStructReloadClick
       end
     end
+    object MModel: TMenuItem
+      Caption = 'Model'
+      object MCheckCHARRef: TMenuItem
+        Caption = 'Check CHAR references'
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object MExport: TMenuItem
+        Caption = 'Export'
+        object MExportM3ML: TMenuItem
+          Caption = 'Export to M3ML ...'
+          OnClick = MExportM3MLClick
+        end
+      end
+    end
   end
   object OpenDialog: TOpenDialog
     Filter = 'Model/Animation Files|*.m3;*.m3a|Model Files|*.m3|Animation Files|*.m3a|All Files|*.*'

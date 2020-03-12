@@ -22,6 +22,8 @@ type
     procedure LoadM3File(const FileName: string);
     procedure SaveM3File(const FileName: string);
 
+    procedure InitEmptyModel(const NewTagCount: Integer);
+
     property Tags[Index: Integer]: PM3Structure read GetTag; default;
     property TagCount: Integer read GetTagCount;
   end;
@@ -67,7 +69,11 @@ var
 begin
   for i := 0 to length(FTags)-1 do
   with FTags[i] do
+  begin
     Freemem(Data);
+    SetLength(ItemFields,0);
+    SetLength(RefFrom,0);
+  end;
   SetLength(FTags,0);
 end;
 
@@ -164,6 +170,27 @@ begin
   finally
     F.Free;
     SetLength(tagList,0);
+  end;
+end;
+
+procedure TM3File.InitEmptyModel(const NewTagCount: Integer);
+var
+  i: integer;
+begin
+  ClearTags;
+  SetLength(FTags,NewTagCount);
+  for i := 0 to NewTagCount-1 do
+  with FTags[i] do
+  begin
+    Tag := 0;
+    Index := i;
+    StructName := '';
+    Description := '';
+    Ver := 0;
+    Getmem(Data,16);
+    DataSize := 16;
+    ItemSize := 0;
+    ItemCount := 0;
   end;
 end;
 

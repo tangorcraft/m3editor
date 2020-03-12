@@ -201,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="15">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -286,6 +286,23 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uCHARBulkEdit"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="um3ml.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uM3ML"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="ucommon.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uCommon"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="urefedit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FRefEdit"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="uRefEdit"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -5,7 +5,7 @@ unit ustructures;
 interface
 
 uses
-  Classes, SysUtils, XMLRead, XMLWrite, DOM;
+  Classes, SysUtils, Laz2_XMLRead, Laz2_XMLWrite, Laz2_DOM;
 
 type
   Pm3ref = ^m3ref;
@@ -109,6 +109,7 @@ type
     ftUInt8, ftUInt16, ftUInt32,
     ftInt8, ftInt16, ftInt32,
     ftFloat,
+    ftRef, ftRefSmall,
     ftSubStruct
   );
 
@@ -177,6 +178,7 @@ type
 
   TM3Structures = class
   private
+    FMD5Str: string;
     FXML: TXMLDocument;
 
     FTagInfos: array of TM3TagInfo;
@@ -199,6 +201,8 @@ type
 
     function GetStructureInfo(var m3Tag: TM3Structure): boolean;
     procedure GetTagSize(var m3Tag: TM3Structure);
+
+    property MD5String: string read FMD5Str;
   end;
 
 var
@@ -206,12 +210,10 @@ var
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
 
-function M3FloatToStr(const F: Single): string;
-
 implementation
 
 uses
-  umain;
+  umain, md5, uCommon;
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
 var
@@ -236,43 +238,6 @@ begin
   Struct.ItemCount := NewCount;
 end;
 
-function M3FloatToStr(const F: Single): string;
-var
-  i: integer;
-begin
-  Result := FloatToStrF(F,ffFixed,0,100);
-  i := length(Result);
-  while (i > 3) and (Result[i] = '0') do
-    dec(i);
-  Result := copy(Result,1,i);
-end;
-
-function GetChildDOMElement(const el: TDOMElement): TDOMElement;
-var
-  n: TDOMNode;
-begin
-  n := el.FirstChild;
-  while (n <> nil) and not (n is TDOMElement) do
-    n := n.NextSibling;
-  if n = nil then
-    Result := nil
-  else
-    Result := n as TDOMElement;
-end;
-
-procedure NextDOMElement(var el: TDOMElement);
-var
-  n: TDOMNode;
-begin
-  n := el.NextSibling;
-  while (n <> nil) and not (n is TDOMElement) do
-    n := n.NextSibling;
-  if n = nil then
-    el := nil
-  else
-    el := n as TDOMElement;
-end;
-
 function FieldTypeFromStr(const S: string): TM3FieldTypes;
 begin
   //S := LowerCase(S);
@@ -286,19 +251,23 @@ begin
   else if S = 'int16' then Result := ftInt16
   else if S = 'int32' then Result := ftInt32
   else if S = 'float' then Result := ftFloat
+  else if S = 'Reference' then Result := ftRef
+  else if S = 'SmallReference' then Result := ftRefSmall
   else Result := ftSubStruct;
 end;
 
 function FieldSizeFromType(const fType: TM3FieldTypes): integer;
 begin
   case fType of
-    ftUInt8:  Result := 1;
-    ftUInt16: Result := 2;
-    ftUInt32: Result := 4;
-    ftInt8:   Result := 1;
-    ftInt16:  Result := 2;
-    ftInt32:  Result := 4;
-    ftFloat:  Result := 4;
+    ftUInt8:    Result := 1;
+    ftUInt16:   Result := 2;
+    ftUInt32:   Result := 4;
+    ftInt8:     Result := 1;
+    ftInt16:    Result := 2;
+    ftInt32:    Result := 4;
+    ftFloat:    Result := 4;
+    ftRef:      Result := SizeOf(m3ref);
+    ftRefSmall: Result := SizeOf(m3ref_small);
   else Result := 0;
   end;
 end;
@@ -589,6 +558,7 @@ procedure TM3Structures.LoadStructures(const aFileName: string);
 begin
   if FXML <> nil then
     FXML.Free;
+  FMD5Str := MD5Print(MD5File(aFileName));
   ReadXMLFile(FXML,aFileName);
   LoadTagInfos;
   LoadStructInfos;

@@ -42,7 +42,7 @@ var
 implementation
 
 uses
-  ustructures;
+  uCommon;
 
 {$R *.lfm}
 

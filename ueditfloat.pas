@@ -5,7 +5,7 @@ unit uEditFloat;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ustructures;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls;
 
 type
 
@@ -30,6 +30,9 @@ var
   FEditFloat: TFEditFloat;
 
 implementation
+
+uses
+  uCommon;
 
 {$R *.lfm}
 

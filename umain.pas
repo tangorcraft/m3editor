@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls,
-  ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles, uCHARBulkEdit;
+  ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles, uCHARBulkEdit,
+  uM3ML;
 
 type
 
@@ -24,6 +25,11 @@ type
     lblStruct: TLabel;
     MainMenu: TMainMenu;
     MemoLog: TMemo;
+    MCheckCHARRef: TMenuItem;
+    MExportM3ML: TMenuItem;
+    N2: TMenuItem;
+    MExport: TMenuItem;
+    MModel: TMenuItem;
     MStructOpen: TMenuItem;
     MStructReload: TMenuItem;
     MStruct: TMenuItem;
@@ -45,6 +51,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure MExportM3MLClick(Sender: TObject);
     procedure MFileOpenClick(Sender: TObject);
     procedure MSaveAsClick(Sender: TObject);
     procedure MSaveClick(Sender: TObject);
@@ -179,6 +186,10 @@ begin
   IniMain.Free;
 end;
 
+procedure TFMain.MExportM3MLClick(Sender: TObject);
+begin
+end;
+
 procedure TFMain.MFileOpenClick(Sender: TObject);
 var
   i: integer;
@@ -283,7 +294,7 @@ begin
     begin
       for j := 0 to length(ItemFields)-1 do
       begin
-        if (ItemFields[j].fTypeName = 'Reference') or (ItemFields[j].fTypeName = 'SmallReference') then
+        if (ItemFields[j].fType in [ftRef,ftRefSmall]) then
           for idx := 0 to ItemCount-1 do
           begin
             pRef := Data + (ItemSize*idx) + ItemFields[j].fOffset;
