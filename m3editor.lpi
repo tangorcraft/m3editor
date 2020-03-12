@@ -300,6 +300,7 @@
         <Filename Value="urefedit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FRefEdit"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uRefEdit"/>
       </Unit14>

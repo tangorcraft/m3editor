@@ -188,6 +188,7 @@ end;
 
 procedure TFMain.MExportM3MLClick(Sender: TObject);
 begin
+  ExportToM3ML(FM3File,FAppPath+'test.m3ml');
 end;
 
 procedure TFMain.MFileOpenClick(Sender: TObject);
