@@ -299,7 +299,6 @@ begin
       FMain.Log('M3ML Parser: Duplicate tag index %d',[Idx])
     else
     begin
-      Index := Idx;
       StructName := m3tag['name'];
       if StructName = 'CHAR' then
       begin
@@ -390,7 +389,7 @@ begin
     if root['structures'] <> Structures.MD5String then
       FMain.Log('M3ML Parser: structures signature does not match');
 
-    // first, lets count tags
+    // first, lets get max tag index
     i := 0;
     max := 0;
     m3tag := GetChildDOMElement(root);
@@ -406,13 +405,9 @@ begin
       end;
       NextDOMElement(m3tag);
     end;
-    inc(max);
     if i<>max then
       FMain.Log('M3ML Parser: Number of tags (%d) don''t match (max index+1)=%d',[i,max]);
-    if i > max then
-      Model.InitEmptyModel(i)
-    else
-      Model.InitEmptyModel(max);
+    Model.InitEmptyModel(max+1);
 
     // read data from tags with index
     // skip tags without index for now
@@ -425,10 +420,29 @@ begin
       NextDOMElement(m3tag);
     end;
 
-    for i := 0 to Model.TagCount-1 do
-    with Model[i]^ do
+    // read data from tags without index
+    // place this tags in free indexes in m3 file
+    m3tag := GetChildDOMElement(root);
+    while m3tag <> nil do
     begin
+      i := StrToIntDef(m3tag['idx'],-1);
+      if (m3tag.TagName = 'm3tag') and (i = -1) then
+      begin
+        i := Model.AppendEmptyTag;
+        ReadM3Tag(Model[i]^,i,m3tag);
+      end;
+      NextDOMElement(m3tag);
+    end;
 
+    FMain.Log('M3ML Parser: Scanning for possible reference count mismatch or invalid index.');
+    FMain.Log('M3ML Parser: Reference count mismatch found and repaired: %d',[Model.ScanReferences(false)]);
+
+    i := Model.TagCount-1;
+    while i >= 0 do
+    begin
+      if Model[i]^.Tag = 0 then
+        Model.DeleteTag(i);
+      Dec(i);
     end;
   finally
     m3ml.Free;

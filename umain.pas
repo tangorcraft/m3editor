@@ -216,8 +216,6 @@ begin
     begin
       Log('Parsing M3ML file: "%s"',[OpenDialog.FileName]);
       ImportFromM3ML(FM3File, OpenDialog.FileName);
-      Log('Scanning for possible reference count mismatch or invalid index.');
-      Log('Reference count mismatch found and repaired: %d',[FM3File.ScanReferences(false)]);
       FModified := true;
       FCurrentFileName := '';
     end;
