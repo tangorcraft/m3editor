@@ -211,6 +211,7 @@ var
   Structures: TM3Structures;
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
+function DuplicateStructureItem(var Struct: TM3Structure; const Index: Integer): Integer; // ResetRefFrom must be called after this function
 function FieldTypeFromStr(const S: string): TM3FieldTypes;
 function FieldSizeFromType(const fType: TM3FieldTypes): integer;
 
@@ -240,6 +241,21 @@ begin
   fillSize := Struct.DataSize - newSize;
   FillChar((Struct.Data + newSize)^,fillSize,$AA);
   Struct.ItemCount := NewCount;
+end;
+
+function DuplicateStructureItem(var Struct: TM3Structure;
+  const Index: Integer): Integer;
+var
+  s, d: Pointer;
+  size: Integer;
+begin
+  ResizeStructure(Struct,Struct.ItemCount+1);
+  if Index < 0 then Result := 0;
+  if Index >= Struct.ItemCount then Exit(Struct.ItemCount-1);
+  s := Struct.Data + Struct.ItemSize * Result;
+  d := s + Struct.ItemSize;
+  size := (Struct.ItemCount - Result - 1) * Struct.ItemSize;
+  Move(s,d,size);
 end;
 
 function FieldTypeFromStr(const S: string): TM3FieldTypes;

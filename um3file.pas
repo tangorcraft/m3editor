@@ -23,6 +23,12 @@ type
     procedure SaveM3File(const FileName: string);
 
     procedure InitEmptyModel(const NewTagCount: Integer);
+    function AppendEmptyTag: Integer;
+    procedure InsertEmptyTag(const Idx: Integer);
+    procedure DeleteTag(const Idx: Integer);
+
+    procedure MoveTagUp(const Idx: Integer);
+    procedure MoveTagDown(const Idx: Integer);
 
     procedure ResetRefFrom;
     function RepairReferenceCount: Integer;
@@ -192,6 +198,136 @@ begin
     ItemSize := 0;
     ItemCount := 0;
   end;
+end;
+
+function TM3File.AppendEmptyTag: Integer;
+begin
+  Result := TagCount;
+  SetLength(FTags,Result+1);
+  with FTags[Result] do
+  begin
+    Tag := 0;
+    Index := Result;
+    StructName := '';
+    Description := '';
+    Ver := 0;
+    Getmem(Data,16);
+    DataSize := 16;
+    ItemSize := 0;
+    ItemCount := 0;
+  end;
+end;
+
+procedure TM3File.InsertEmptyTag(const Idx: Integer);
+var
+  i, j: Integer;
+  p: Pm3ref_small;
+begin
+  i := TagCount;
+  SetLength(FTags,i+1);
+
+  while i > Idx do
+  begin
+    ResetRefFrom;
+    for j := 0 to length(FTags[i-1].RefFrom)-1 do
+    with FTags[i-1].RefFrom[j] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      Inc(p^.refIndex);
+    end;
+    FTags[i] := FTags[i-1];
+    FTags[i].Index := i;
+    Dec(i);
+  end;
+
+  with FTags[i] do
+  begin
+    Tag := 0;
+    Index := i;
+    StructName := '';
+    Description := '';
+    Ver := 0;
+    Getmem(Data,16);
+    DataSize := 16;
+    ItemSize := 0;
+    ItemCount := 0;
+  end;
+end;
+
+procedure TM3File.DeleteTag(const Idx: Integer);
+var
+  i, j: Integer;
+  p: Pm3ref_small;
+begin
+  i := Idx;
+
+  ResetRefFrom;
+  for j := 0 to length(FTags[i].RefFrom)-1 do
+  with FTags[i].RefFrom[j] do
+  begin
+    p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+    p^.refIndex := 0;
+    p^.refCount := 0;
+  end;
+
+  with FTags[i] do
+  begin
+    Freemem(Data,DataSize);
+    SetLength(ItemFields,0);
+    SetLength(RefFrom,0);
+  end;
+
+  inc(i);
+  while i < TagCount do
+  begin
+    ResetRefFrom;
+    for j := 0 to length(FTags[i].RefFrom)-1 do
+    with FTags[i].RefFrom[j] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      dec(p^.refIndex);
+    end;
+    FTags[i-1] := FTags[i];
+    FTags[i-1].Index := i-1;
+    inc(i);
+  end;
+
+  SetLength(FTags,TagCount-1);
+end;
+
+procedure TM3File.MoveTagUp(const Idx: Integer);
+var
+  tmp: TM3Structure;
+  i: Integer;
+  p: Pm3ref_small;
+begin
+  if (Idx > 0) and (Idx < TagCount) then
+  begin
+    ResetRefFrom;
+    for i := 0 to length(FTags[Idx].RefFrom)-1 do
+    with FTags[Idx].RefFrom[i] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      dec(p^.refIndex);
+    end;
+    for i := 0 to length(FTags[Idx-1].RefFrom)-1 do
+    with FTags[Idx-1].RefFrom[i] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      inc(p^.refIndex);
+    end;
+    tmp := FTags[Idx];
+    FTags[Idx] := FTags[Idx-1];
+    FTags[Idx-1] := tmp;
+    FTags[Idx].Index := Idx;
+    FTags[Idx-1].Index := Idx-1;
+    ResetRefFrom;
+  end;
+end;
+
+procedure TM3File.MoveTagDown(const Idx: Integer);
+begin
+  MoveTagUp(Idx+1);
 end;
 
 procedure TM3File.ResetRefFrom;
