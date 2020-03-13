@@ -26,6 +26,7 @@ type
 
     procedure ResetRefFrom;
     function RepairReferenceCount: Integer;
+    function ScanReferences(const CHAROnly: Boolean): Integer;
 
     property Tags[Index: Integer]: PM3Structure read GetTag; default;
     property TagCount: Integer read GetTagCount;
@@ -252,6 +253,50 @@ begin
         inc(Result);
       end;
     end;
+end;
+
+function TM3File.ScanReferences(const CHAROnly: Boolean): Integer;
+var
+  i, j, idx: Integer;
+  pRef: Pm3ref;
+begin
+  Result := 0;
+  for i := 0 to TagCount - 1 do
+  begin
+    Structures.GetStructureInfo(FTags[i]);
+    with FTags[i] do
+    if ItemSize >= sizeof(m3ref_small) then
+    begin
+      for j := 0 to length(ItemFields)-1 do
+      begin
+        if (ItemFields[j].fType in [ftRef,ftRefSmall]) then
+          for idx := 0 to ItemCount-1 do
+          begin
+            pRef := Data + (ItemSize*idx) + ItemFields[j].fOffset;
+            with pRef^ do
+            begin
+              if (refCount > 0) and (refIndex > 0) and (refIndex < TagCount) then
+              begin
+                if (FTags[refIndex].ItemCount <> refCount) and ((FTags[refIndex].Tag = CHARTag) or not CHAROnly) then
+                begin
+                  refCount := FTags[refIndex].ItemCount;
+                  inc(Result);
+                end;
+              end
+              else
+              begin
+                if (refCount <> 0) or (refIndex <> 0) then
+                  inc(Result);
+                refCount := 0;
+                refIndex := 0;
+                if ItemFields[j].fType = ftRef then
+                  refFlags := 0;
+              end;
+            end;
+          end;
+      end;
+    end;
+  end;
 end;
 
 end.

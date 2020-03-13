@@ -167,15 +167,23 @@ object FMain: TFMain
     end
     object MModel: TMenuItem
       Caption = 'Model'
-      Enabled = False
-      object MCheckCHARRef: TMenuItem
-        Caption = 'Check CHAR references'
+      object MScanRef: TMenuItem
+        Caption = 'Scan references'
+        object MScanRefAll: TMenuItem
+          Caption = 'Check all'
+          OnClick = MScanRefAllClick
+        end
+        object MScanRefCHAR: TMenuItem
+          Caption = 'Check CHAR only'
+          OnClick = MScanRefCHARClick
+        end
       end
       object N2: TMenuItem
         Caption = '-'
       end
       object MExport: TMenuItem
         Caption = 'Export'
+        Enabled = False
       end
     end
   end

@@ -92,7 +92,7 @@ begin
     EditUnSigned.Text := IntToStr(FCurValue);
   if EditHex<>Exclude then
     EditHex.Text := IntToHex(FCurValue,2);
-  lblFixed.Caption := Format('Fixed: %s',[FloatToStr((FCurValue / 255.0)*2 - 1,FloatDotFormat)]);
+  lblFixed.Caption := Format('Real: %s',[FloatToStr((FCurValue / 255.0)*2 - 1,FloatDotFormat)]);
   FUpdating := false;
 end;
 

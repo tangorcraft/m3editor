@@ -25,7 +25,9 @@ type
     lblStruct: TLabel;
     MainMenu: TMainMenu;
     MemoLog: TMemo;
-    MCheckCHARRef: TMenuItem;
+    MScanRefCHAR: TMenuItem;
+    MScanRefAll: TMenuItem;
+    MScanRef: TMenuItem;
     MOpenM3ML: TMenuItem;
     N3: TMenuItem;
     MSaveM3ML: TMenuItem;
@@ -58,6 +60,8 @@ type
     procedure MSaveAsClick(Sender: TObject);
     procedure MSaveClick(Sender: TObject);
     procedure MSaveM3MLClick(Sender: TObject);
+    procedure MScanRefAllClick(Sender: TObject);
+    procedure MScanRefCHARClick(Sender: TObject);
     procedure MStructOpenClick(Sender: TObject);
     procedure MStructReloadClick(Sender: TObject);
   private
@@ -212,8 +216,8 @@ begin
     begin
       Log('Parsing M3ML file: "%s"',[OpenDialog.FileName]);
       ImportFromM3ML(FM3File, OpenDialog.FileName);
-      Log('Scanning for possible reference count mismatch.');
-      Log('Reference count mismatch found and repaired: %d',[FM3File.RepairReferenceCount]);
+      Log('Scanning for possible reference count mismatch or invalid index.');
+      Log('Reference count mismatch found and repaired: %d',[FM3File.ScanReferences(false)]);
       FModified := true;
       FCurrentFileName := '';
     end;
@@ -259,6 +263,18 @@ begin
     Log('Exporting model data to "%s"',[SaveM3MLDialog.FileName]);
     ExportToM3ML(FM3File,SaveM3MLDialog.FileName);
   end;
+end;
+
+procedure TFMain.MScanRefAllClick(Sender: TObject);
+begin
+  Log('Scanning for possible reference count mismatch or invalid index.');
+  Log('Reference count mismatch found and repaired: %d',[FM3File.ScanReferences(false)]);
+end;
+
+procedure TFMain.MScanRefCHARClick(Sender: TObject);
+begin
+  Log('Scanning for possible reference count mismatch (ref to CHAR only) or invalid index.');
+  Log('Reference count mismatch found and repaired: %d',[FM3File.ScanReferences(true)]);
 end;
 
 procedure TFMain.MStructOpenClick(Sender: TObject);
