@@ -325,6 +325,7 @@ object FTagEditor: TFTagEditor
       object btnMoveItemDown: TSpeedButton
         Left = 224
         Height = 24
+        Hint = 'Move current item to higher index'
         Top = 1
         Width = 24
         Glyph.Data = {
@@ -368,6 +369,7 @@ object FTagEditor: TFTagEditor
       object btnMoveItemUp: TSpeedButton
         Left = 248
         Height = 24
+        Hint = 'Move current item to lower index'
         Top = 1
         Width = 24
         Glyph.Data = {
