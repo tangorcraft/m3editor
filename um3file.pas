@@ -26,6 +26,7 @@ type
     function AppendEmptyTag: Integer;
     procedure InsertEmptyTag(const Idx: Integer);
     procedure DeleteTag(const Idx: Integer);
+    procedure DeleteTagCascade(const Idx: Integer);
 
     procedure MoveTagUp(const Idx: Integer);
     procedure MoveTagDown(const Idx: Integer);
@@ -259,6 +260,7 @@ var
   i, j: Integer;
   p: Pm3ref_small;
 begin
+  if (Idx < 0) or (Idx >= TagCount) Then Exit;
   i := Idx;
 
   ResetRefFrom;
@@ -293,6 +295,72 @@ begin
   end;
 
   SetLength(FTags,TagCount-1);
+  ResetRefFrom;
+end;
+
+procedure TM3File.DeleteTagCascade(const Idx: Integer);
+var
+  arr: array of Integer;
+  checkIdx: Integer;
+  i, j, arrIdx: Integer;
+  add: boolean;
+begin
+  if (Idx < 0) or (Idx >= TagCount) Then Exit;
+  // need to find indexes of tags to delete
+  ResetRefFrom;
+  SetLength(arr,1);
+  arr[0] := Idx;
+  arrIdx := 0;
+  while arrIdx < length(arr) do
+  begin
+    checkIdx := arr[arrIdx];
+    for i := 0 to TagCount-1 do
+      if length(FTags[i].RefFrom) > 0 then
+      begin
+        add := true;
+        for j := 0 to length(FTags[i].RefFrom)-1 do
+          if FTags[i].RefFrom[j].rfTagIndex <> checkIdx then
+          begin
+            add := false;
+            Break;
+          end;
+        if add then
+        begin
+          for j := 0 to Length(arr)-1 do
+            if arr[j] = i then
+            begin
+              add := false;
+              Break;
+            end;
+          if add then
+          begin
+            j := length(arr);
+            SetLength(arr,j+1);
+            arr[j] := i;
+          end;
+        end;
+      end;
+    inc(arrIdx);
+  end;
+
+  // sort indexes, bigger first
+  for i := 0 to length(arr)-2 do
+  begin
+    checkIdx := i;
+    for j := i+1 to length(arr)-1 do
+      if arr[j] > arr[checkIdx] then
+        checkIdx := j;
+    if i<>checkIdx then
+    begin
+      arrIdx := arr[i];
+      arr[i] := arr[checkIdx];
+      arr[checkIdx] := arrIdx;
+    end;
+  end;
+
+  // delete tags
+  for i := 0 to length(arr)-1 do
+    DeleteTag(arr[i]);
 end;
 
 procedure TM3File.MoveTagUp(const Idx: Integer);
