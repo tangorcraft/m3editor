@@ -2906,7 +2906,7 @@
             <field name="physicalJoint" type="Reference" refTo="PHYJ" />
             <field name="clothBehavior" type="Reference" refTo="PHCL" since-version="28" />
             <field name="unknownMaybeRef4" type="Reference" />
-            <field name="unknownbd5657bd" size="12" since-version="25" />
+            <field name="unknownbd5657bd" type="Reference" since-version="25" />
             <field name="ikjtData" type="Reference" refTo="IKJT"/>
             <field name="unknownMaybeRef5" type="Reference" />
             <field name="partsOfTurrentBehaviors" type="Reference" refTo="PATU" />
