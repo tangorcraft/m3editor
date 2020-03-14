@@ -10,6 +10,7 @@ object FMain: TFMain
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object MemoLog: TMemo
@@ -64,7 +65,6 @@ object FMain: TFMain
       Width = 155
       Caption = 'Mesh Editor (WIP)'
       TabOrder = 2
-      Visible = False
     end
     object gbOptions: TGroupBox
       Left = 8
@@ -184,6 +184,14 @@ object FMain: TFMain
       object MExport: TMenuItem
         Caption = 'Export'
         Enabled = False
+      end
+    end
+    object MDebugAction: TMenuItem
+      Caption = 'MDebugAction'
+      OnClick = MDebugActionClick
+      object MDebug1: TMenuItem
+        Caption = 'MDebug1'
+        OnClick = MDebugActionClick
       end
     end
   end

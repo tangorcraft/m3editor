@@ -32,7 +32,7 @@ type
     FRef: Pm3ref;
     FM3File: TM3File;
   public
-    procedure ShowEditor(const M3: TM3File; const F: TM3Field; const idx: Integer);
+    function ShowEditor(const M3: TM3File; const F: TM3Field; const idx: Integer): boolean;
   end;
 
 var
@@ -94,8 +94,8 @@ begin
   EditFlags.Text := IntToHex(StrToIntDef('0x'+EditFlags.Text,0),8);
 end;
 
-procedure TFRefEdit.ShowEditor(const M3: TM3File; const F: TM3Field;
-  const idx: Integer);
+function TFRefEdit.ShowEditor(const M3: TM3File; const F: TM3Field;
+  const idx: Integer): boolean;
 var
   i: Integer;
 begin
@@ -121,7 +121,8 @@ begin
   else
     EditFlags.Text := IntToHex(FRef^.refFlags,8);
 
-  if ShowModal = mrOK then
+  Result := (ShowModal = mrOK);
+  if Result then
   begin
     FRef^.refIndex := comboTags.ItemIndex;
     FRef^.refCount := StrToIntDef(EditCount.Text,0);

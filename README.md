@@ -8,13 +8,12 @@ Program to directly edit M3 models
   * If selected tag item has references to other tags in it's fields, these tags will be displayed as sub-nodes of selected tag.
   * If selected tag is referenced from other tags, those references will be displayed at the bottom of values table.
     * Doubleclicking on value of "Referenced from" field will select a tag in tag tree and item index that references current tag.
-* Adding/deleting tags and tag items is not implemented yet.
 * Tag at index 0 (`MD33` or `MD34`) is special as it's fields values describe **.m3** file offsets.
   * Any changes will be rewriten when file is saved.
 
 ## CHAR bulk edit
 * Allows to edit all CHAR tags' values in a single action.
-* Text can be copied to any text editor and then copied back to perform changes on tags.
+* Text can be copied to any text editor and then copied back to apply changes on tags.
 * Lines that don't need to be changed can be deleted.
 * Number at the start of the line and colon is an index of CHAR tag and must be preserved for changed lines.
 
@@ -25,5 +24,5 @@ Program to directly edit M3 models
   * field names.
   * `refFrom` tags.
 * References will be scanned after import and `refCnt` will be corrected to match the item count of referenced tag.
-  * `refCnt=0` or `refIdx=0` means "No reference".
+  * `refCnt=0` **or** `refIdx=0` means "No reference".
 * `m3tag` tags without `Idx` attribute will be added to the end of tag list.

@@ -7,24 +7,43 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Grids, ComCtrls, ustructures, uM3File, uEditString, uEditInteger,
-  uEditFlags, uEditWord, uEditByte, uEditFloat, uRefEdit;
+  uEditFlags, uEditWord, uEditByte, uEditFloat, uRefEdit, uNewTag;
 
 type
 
   { TFTagEditor }
 
   TFTagEditor = class(TForm)
-    btnPrev: TButton;
-    btnNext: TButton;
+    btnInsertTag: TSpeedButton;
+    btnDelTag: TSpeedButton;
+    btnDelTagCascade: TSpeedButton;
+    btnMoveItemDown: TSpeedButton;
+    btnMoveItemUp: TSpeedButton;
+    btnDuplicateItem: TSpeedButton;
+    btnAppendItem: TSpeedButton;
+    btnDelItem: TSpeedButton;
     lblItemIndex: TLabel;
     MemoDesc: TMemo;
+    PanelLeft: TPanel;
     PanelNavi: TPanel;
     PanelMain: TPanel;
     PanelBottom: TPanel;
+    btnPrev: TSpeedButton;
+    btnNext: TSpeedButton;
+    btnAppendTag: TSpeedButton;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     TableView: TStringGrid;
     treeTags: TTreeView;
+    procedure btnAppendTagClick(Sender: TObject);
+    procedure btnInsertTagClick(Sender: TObject);
+    procedure btnDelTagClick(Sender: TObject);
+    procedure btnDelTagCascadeClick(Sender: TObject);
+    procedure btnAppendItemClick(Sender: TObject);
+    procedure btnDelItemClick(Sender: TObject);
+    procedure btnDuplicateItemClick(Sender: TObject);
+    procedure btnMoveItemDownClick(Sender: TObject);
+    procedure btnMoveItemUpClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
     procedure btnPrevClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -86,7 +105,7 @@ end;
 
 procedure TFTagEditor.SelectStructure(const S: PM3Structure);
 begin
-  if S <> nil then
+  if (S <> nil) and Assigned(treeTags.Selected) then
     FM3Struct := PM3Structure(treeTags.Selected.Data);
   if FM3Struct <> nil then
   begin
@@ -96,6 +115,11 @@ begin
     FTagItemDisplayRange := False;
     PanelNavi.Enabled := True;
     UpdateItemTable;
+  end
+  else
+  begin
+    PanelNavi.Enabled := False;
+    TableView.RowCount := 1;
   end;
 end;
 
@@ -224,9 +248,123 @@ begin
   UpdateItemTable;
 end;
 
+procedure TFTagEditor.btnDuplicateItemClick(Sender: TObject);
+begin
+  FTagItemIdxFirst := DuplicateStructureItem(FM3Struct^,FTagItemIdxFirst);
+  FMain.ModelChanged(Self);
+  UpdateTagTree;
+  UpdateItemTable;
+end;
+
+procedure TFTagEditor.btnMoveItemDownClick(Sender: TObject);
+begin
+  if FTagItemIdxFirst < (FM3Struct^.ItemCount-1) then
+  begin
+    ExchangeStructureItems(FM3Struct^,FTagItemIdxFirst,FTagItemIdxFirst+1);
+    inc(FTagItemIdxFirst);
+    UpdateItemTable;
+  end;
+end;
+
+procedure TFTagEditor.btnMoveItemUpClick(Sender: TObject);
+begin
+  if FTagItemIdxFirst > 0 then
+  begin
+    ExchangeStructureItems(FM3Struct^,FTagItemIdxFirst,FTagItemIdxFirst-1);
+    dec(FTagItemIdxFirst);
+    UpdateItemTable;
+  end;
+end;
+
+procedure TFTagEditor.btnAppendItemClick(Sender: TObject);
+begin
+  ResizeStructure(FM3Struct^,FM3Struct^.ItemCount+1);
+  CopyStructureItem(FM3Struct^,FTagItemIdxFirst,FM3Struct^.ItemCount+1);
+  FTagItemIdxFirst := FM3Struct^.ItemCount-1;
+  FMain.ModelChanged(Self);
+  UpdateTagTree;
+  UpdateItemTable;
+end;
+
+procedure TFTagEditor.btnInsertTagClick(Sender: TObject);
+begin
+  with TFNewTag.Create(Self) do
+  try
+    if ShowEditor(FM3File,FM3Struct^.Index+1) then
+    begin
+      FMain.ModelChanged(Self);
+      ResetTagTree;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFTagEditor.btnAppendTagClick(Sender: TObject);
+begin
+  with TFNewTag.Create(Self) do
+  try
+    if ShowEditor(FM3File,FM3File.TagCount) then
+    begin
+      FMain.ModelChanged(Self);
+      ResetTagTree;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFTagEditor.btnDelTagClick(Sender: TObject);
+begin
+  if MessageDlg(
+    'Tag delete',
+    'You sure you want to delete tag '+GetTreeTagName(FM3Struct^)+'?',
+    mtConfirmation, mbYesNo, 0
+  ) = mrYes then
+  begin
+    FM3File.DeleteTag(FM3Struct^.Index);
+    FM3Struct := nil;
+    FMain.ModelChanged(Self);
+    ResetTagTree;
+  end;
+end;
+
+procedure TFTagEditor.btnDelTagCascadeClick(Sender: TObject);
+begin
+  if MessageDlg(
+    'Tag delete',
+    'You sure you want to delete tag '+GetTreeTagName(FM3Struct^)+#13+
+    'and all tags that only referenced by this tag?',
+    mtConfirmation, mbYesNo, 0
+  ) = mrYes then
+  begin
+    FM3File.DeleteTagCascade(FM3Struct^.Index);
+    FM3Struct := nil;
+    FMain.ModelChanged(Self);
+    ResetTagTree;
+  end;
+end;
+
+procedure TFTagEditor.btnDelItemClick(Sender: TObject);
+begin
+  if MessageDlg(
+       'Delete item',
+       'Delete item at index ['+IntToStr(FTagItemIdxFirst)+']',
+       mtConfirmation, mbYesNo, 0
+  ) <> mrYes then Exit;
+  DeleteStructureItem(FM3Struct^,FTagItemIdxFirst);
+  if FTagItemIdxFirst > (FM3Struct^.ItemCount-1) then
+    FTagItemIdxFirst := (FM3Struct^.ItemCount-1);
+  FMain.ModelChanged(Self);
+  UpdateTagTree;
+  UpdateItemTable;
+end;
+
 procedure TFTagEditor.UpdateItemLabel;
 begin
-  if FTagItemDisplayRange then
+  if FM3Struct^.ItemCount = 0 then
+    lblItemIndex.Caption := '[No items]'
+  else if FTagItemDisplayRange then
     lblItemIndex.Caption := Format('[%d-%d]',[FTagItemIdxFirst,FTagItemIdxLast])
   else
     lblItemIndex.Caption := Format('[%d]',[FTagItemIdxFirst])
@@ -236,7 +374,14 @@ procedure TFTagEditor.UpdateItemTable;
 var
   r,c: Integer;
 begin
-  treeTags.Selected.DeleteChildren;
+  if FM3Struct = nil then
+  begin
+    PanelNavi.Enabled := False;
+    TableView.RowCount := 1;
+    Exit;
+  end;
+  if Assigned(treeTags.Selected) then
+    treeTags.Selected.DeleteChildren;
   r := TableView.Row;
   c := TableView.Col;
   if FM3Struct^.StructName = 'CHAR' then DisplayCHAR
@@ -287,6 +432,11 @@ var
   i, off: integer;
   s, ref: string;
 begin
+  if FM3Struct^.ItemCount = 0 then
+  begin
+    TableView.RowCount := 1;
+    Exit;
+  end;
   off := FM3Struct^.ItemSize * FTagItemIdxFirst;
   TableView.RowCount := length(FM3Struct^.ItemFields)+length(FM3Struct^.RefFrom)+1;
   for i := 0 to length(FM3Struct^.ItemFields)-1 do
@@ -505,9 +655,11 @@ procedure TFTagEditor.EditRefField(const F: TM3Field);
 begin
   with TFRefEdit.Create(Self) do
   try
-    ShowEditor(FM3File,F,FM3Struct^.Index);
-    FMain.ModelChanged(Self);
-    UpdateItemTable;
+    if ShowEditor(FM3File,F,FM3Struct^.Index) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateItemTable;
+    end;
   finally
     Free;
   end;
@@ -518,6 +670,7 @@ begin
   FM3File := M3File;
 
   ResetTagTree;
+  SelectStructure(nil);
 
   if Modal then
     ShowModal
@@ -527,27 +680,34 @@ end;
 
 procedure TFTagEditor.ResetTagTree;
 var
-  i: Integer;
+  i, idx: Integer;
 begin
+  idx := FTagItemIdxFirst;
   treeTags.Items.Clear;
   for i := 0 to FM3File.TagCount-1 do
   begin
     if FM3File[i] = FM3Struct then
-      treeTags.Select(treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]))
+    begin
+      treeTags.Select(treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]));
+      FTagItemIdxFirst := idx;
+    end
     else
       treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
   end;
+  if not Assigned(treeTags.Selected) then
+    treeTags.Select(treeTags.Items.GetFirstNode);
+  UpdateItemTable;
 end;
 
 procedure TFTagEditor.UpdateTagTree;
 var
-  pre, s: string;
+  pre: string;
   i: integer;
 begin
   with treeTags.Items.GetEnumerator do
   try
     while MoveNext do
-      if (Current.Data <> nil) and (PM3Structure(Current.Data)^.StructName='CHAR') then
+      if (Current.Data <> nil) then
       with PM3Structure(Current.Data)^ do
       begin
         i := Pos(' -> ',Current.Text);
@@ -555,8 +715,7 @@ begin
           pre := copy(Current.Text,1,i+3)
         else
           pre := '';
-        s := PChar(Data);
-        Current.Text := pre + Format('%d: %s "%s"',[Index,StructName,s]);
+        Current.Text := pre + GetTreeTagName(PM3Structure(Current.Data)^);
       end;
   finally
     Free;

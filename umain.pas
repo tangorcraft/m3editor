@@ -25,6 +25,8 @@ type
     lblStruct: TLabel;
     MainMenu: TMainMenu;
     MemoLog: TMemo;
+    MDebugAction: TMenuItem;
+    MDebug1: TMenuItem;
     MScanRefCHAR: TMenuItem;
     MScanRefAll: TMenuItem;
     MScanRef: TMenuItem;
@@ -56,6 +58,8 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure MDebugActionClick(Sender: TObject);
     procedure MFileOpenClick(Sender: TObject);
     procedure MSaveAsClick(Sender: TObject);
     procedure MSaveClick(Sender: TObject);
@@ -136,11 +140,9 @@ end;
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
 begin
   if FTagEditor = nil then
-  begin
     Application.CreateForm(TFTagEditor,FTagEditor);
-    FTagEditor.ShowEditor(FM3File,false);
-    btnTreeViewEditor.Enabled := false;
-  end;
+  FTagEditor.ShowEditor(FM3File,false);
+  btnTreeViewEditor.Enabled := false;
 end;
 
 procedure TFMain.btnBulkEditCHARClick(Sender: TObject);
@@ -189,6 +191,19 @@ begin
   Structures.Free;
   FM3File.Free;
   IniMain.Free;
+end;
+
+procedure TFMain.FormShow(Sender: TObject);
+begin
+  {$IFOPT D-}
+  BMeshEditor.Visible := false;
+  MDebugAction.Visible := false;
+  {$ENDIF}
+end;
+
+procedure TFMain.MDebugActionClick(Sender: TObject);
+begin
+
 end;
 
 procedure TFMain.MFileOpenClick(Sender: TObject);

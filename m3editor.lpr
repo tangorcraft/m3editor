@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, umain, ustructures, uTagEditor, uM3File, uEditString, uEditInteger,
   uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit, uM3ML, uCommon,
-  uRefEdit
+  uRefEdit, uNewTag
   { you can add units after this };
 
 {$R *.res}
