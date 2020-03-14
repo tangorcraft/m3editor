@@ -102,6 +102,7 @@ type
     Tag: UInt32;
     Ver: UInt32;
     Size: integer;
+    DisplayName: string;
   end;
 
   TM3FieldTypes = (
@@ -184,6 +185,8 @@ type
     FTagInfos: array of TM3TagInfo;
     FStructInfos: array of TM3StructInfo;
 
+    function GetTagInfo(Index: Integer): TM3TagInfo;
+    function GetTagInfoCount: Integer;
     procedure ParseFieldInfo(const Node: TDOMElement; var Field: TM3FieldInfo;
       const DefMinVer: Integer = 0; const DefMaxVer: Integer = MaxInt);
     procedure ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName, GroupName: string;
@@ -203,6 +206,10 @@ type
     procedure GetTagSize(var m3Tag: TM3Structure);
 
     function GetTagInfoFromName(var m3Tag: TM3Structure): boolean;
+    function GetStructureDescFromName(const Name: string): string;
+
+    property TagInfo[Index: Integer]: TM3TagInfo read GetTagInfo;
+    property TagInfoCount: Integer read GetTagInfoCount;
 
     property MD5String: string read FMD5Str;
   end;
@@ -211,7 +218,13 @@ var
   Structures: TM3Structures;
 
 procedure ResizeStructure(var Struct: TM3Structure; NewCount: UInt32);
-function DuplicateStructureItem(var Struct: TM3Structure; const Index: Integer): Integer; // ResetRefFrom must be called after this function
+
+// ResetRefFrom must be called after any of these functions
+function DuplicateStructureItem(var Struct: TM3Structure; const Index: Integer): Integer;
+procedure DeleteStructureItem(var Struct: TM3Structure; const Index: Integer);
+procedure CopyStructureItem(var Struct: TM3Structure; const FromIdx, ToIdx: Integer);
+procedure ExchangeStructureItems(var Struct: TM3Structure; const Idx1, Idx2: Integer);
+
 function FieldTypeFromStr(const S: string): TM3FieldTypes;
 function FieldSizeFromType(const fType: TM3FieldTypes): integer;
 
@@ -225,13 +238,6 @@ var
   newSize, fillSize: Integer;
 begin
   if NewCount = Struct.ItemCount then Exit;
-  if NewCount <= 0 then
-  begin
-    Freemem(Struct.Data, Struct.DataSize);
-    Struct.DataSize := 0;
-    Struct.ItemCount := 0;
-    Exit;
-  end;
   newSize := 16;
   while newSize < (NewCount * Struct.ItemSize) do inc(newSize,16);
   ReAllocMem(Struct.Data, newSize);
@@ -250,12 +256,74 @@ var
   size: Integer;
 begin
   ResizeStructure(Struct,Struct.ItemCount+1);
+  if Struct.ItemCount = 1 then
+  begin
+    FillChar(Struct.Data^,Struct.ItemSize,0);
+    Exit(0);
+  end;
   if Index < 0 then Result := 0;
   if Index >= Struct.ItemCount then Exit(Struct.ItemCount-1);
   s := Struct.Data + Struct.ItemSize * Result;
   d := s + Struct.ItemSize;
   size := (Struct.ItemCount - Result - 1) * Struct.ItemSize;
-  Move(s,d,size);
+  Move(s^,d^,size);
+end;
+
+procedure DeleteStructureItem(var Struct: TM3Structure; const Index: Integer);
+var
+  i: Integer;
+var
+  s, d: Pointer;
+  size: Integer;
+begin
+  if (Index >= 0) and (Index < Struct.ItemCount) then
+  begin
+    if Index <> (Struct.ItemCount-1) then
+    begin
+      d := Struct.Data + Struct.ItemSize * Index;
+      s := d + Struct.ItemSize;
+      size := (Struct.ItemCount - Index - 1) * Struct.ItemSize;
+      Move(s^,d^,size);
+    end;
+    ResizeStructure(Struct,Struct.ItemCount-1);
+  end;
+end;
+
+procedure CopyStructureItem(var Struct: TM3Structure; const FromIdx,
+  ToIdx: Integer);
+var
+  pFrom, pTo: Pointer;
+begin
+  if (FromIdx >= 0) and (FromIdx < Struct.ItemCount) and
+     (ToIdx >= 0) and (ToIdx < Struct.ItemCount) and
+     (FromIdx <> ToIdx) then
+  begin
+    pFrom := Struct.Data + Struct.ItemSize * FromIdx;
+    pTo := Struct.Data + Struct.ItemSize * ToIdx;
+    Move(pFrom^,pTo^,Struct.ItemSize);
+  end;
+end;
+
+procedure ExchangeStructureItems(var Struct: TM3Structure; const Idx1,
+  Idx2: Integer);
+var
+  p1, p2, pTmp: Pointer;
+begin
+  if (Idx1 >= 0) and (Idx1 < Struct.ItemCount) and
+     (Idx2 >= 0) and (Idx2 < Struct.ItemCount) and
+     (Idx1 <> Idx2)then
+  begin
+    Getmem(pTmp,Struct.ItemSize);
+    try
+      p1 := Struct.Data + Struct.ItemSize * Idx1;
+      p2 := Struct.Data + Struct.ItemSize * Idx2;
+      Move(p1^,pTmp^,Struct.ItemSize);
+      Move(p2^,p1^,Struct.ItemSize);
+      Move(pTmp^,p2^,Struct.ItemSize);
+    finally
+      Freemem(pTmp,Struct.ItemSize);
+    end;
+  end;
 end;
 
 function FieldTypeFromStr(const S: string): TM3FieldTypes;
@@ -366,6 +434,17 @@ begin
     Field.fiTypeFlag := false;
 end;
 
+function TM3Structures.GetTagInfo(Index: Integer): TM3TagInfo;
+begin
+  // no range check to prevent runtime errors, because I don't care
+  Result := FTagInfos[Index];
+end;
+
+function TM3Structures.GetTagInfoCount: Integer;
+begin
+  Result := length(FTagInfos);
+end;
+
 procedure TM3Structures.ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName,
   GroupName: string; const SubLevel, SubVerMin, SubVerMax: Integer; var Desc: string);
 var
@@ -439,6 +518,7 @@ procedure TM3Structures.LoadTagInfos;
 var
   el: TDOMElement;
   i, v, t, n: integer;
+  tmp: TM3TagInfo;
 begin
   SetLength(FTagInfos,0);
   if FXML = nil then Exit;
@@ -458,9 +538,25 @@ begin
       FTagInfos[i].Tag := t;
       FTagInfos[i].Ver := v;
       FTagInfos[i].Size := n;
+      FTagInfos[i].DisplayName := Format('%s V%d (size = %d)',[FTagInfos[i].Name,v,n]);
       inc(i);
     end;
     NextDOMElement(el);
+  end;
+
+  // sort by DisplayName
+  for i := 0 to TagInfoCount-2 do
+  begin
+    n := i;
+    for v := i+1 to TagInfoCount-1 do
+      if FTagInfos[v].DisplayName < FTagInfos[n].DisplayName then
+        n := v;
+    if n <> i then
+    begin
+      tmp := FTagInfos[i];
+      FTagInfos[i] := FTagInfos[n];
+      FTagInfos[n] := tmp;
+    end;
   end;
 end;
 
@@ -723,6 +819,19 @@ begin
         Exit;
       end;
   end;
+end;
+
+function TM3Structures.GetStructureDescFromName(const Name: string): string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := 0 to length(FStructInfos)-1 do
+    if FStructInfos[i].iStructName = Name then
+    begin
+      Result := FStructInfos[i].iDescription;
+      Exit;
+    end;
 end;
 
 end.
