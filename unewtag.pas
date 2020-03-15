@@ -27,7 +27,8 @@ type
     FIdx: Integer;
     FM3File: TM3File;
   public
-    function ShowEditor(const M3: TM3File; const newIdx: Integer): Boolean;
+    function ShowAddTag(const M3: TM3File; const newIdx: Integer): Boolean;
+    function ShowEditTag(const M3: TM3File; const newIdx: Integer): Boolean;
   end;
 
 var
@@ -66,7 +67,7 @@ begin
   end;
 end;
 
-function TFNewTag.ShowEditor(const M3: TM3File; const newIdx: Integer): Boolean;
+function TFNewTag.ShowAddTag(const M3: TM3File; const newIdx: Integer): Boolean;
 var
   i: Integer;
 begin
@@ -84,6 +85,46 @@ begin
       FIdx := M3.AppendEmptyTag
     else
       M3.InsertEmptyTag(FIdx);
+    with Structures.TagInfo[comboTags.ItemIndex] do
+    begin
+      M3[FIdx]^.Tag := Tag;
+      M3[FIdx]^.StructName := Name;
+      M3[FIdx]^.Ver := Ver;
+      M3[FIdx]^.ItemSize := Size;
+    end;
+    Structures.GetStructureInfo(M3[FIdx]^);
+    DuplicateStructureItem(M3[FIdx]^,0);
+    if M3[FIdx]^.Tag = headerTag33 then
+      Pm3Header(M3[FIdx]^.Data)^.tag := headerTag33;
+    if M3[FIdx]^.Tag = headerTag34 then
+      Pm3Header(M3[FIdx]^.Data)^.tag := headerTag34;
+  end;
+end;
+
+function TFNewTag.ShowEditTag(const M3: TM3File;
+  const newIdx: Integer): Boolean;
+var
+  i: Integer;
+begin
+  for i := 0 to Structures.TagInfoCount-1 do
+    comboTags.Items.Add(Structures.TagInfo[i].DisplayName);
+  FIdx := newIdx;
+  FM3File := M3;
+  btnPlus.Visible := false;
+  btnMinus.Visible := false;
+  lblIndex.Caption := 'Edit tag at index: '+IntToStr(FIdx);
+  Caption := 'Change tag ID';
+  for i := 0 to Structures.TagInfoCount-1 do
+    if (Structures.TagInfo[i].Tag = M3[FIdx]^.Tag) and (Structures.TagInfo[i].Ver = M3[FIdx]^.Ver) then
+    begin
+      comboTags.ItemIndex := i;
+      Break;
+    end;
+
+  Result := (ShowModal = mrOK) and (comboTags.ItemIndex >= 0) and (comboTags.ItemIndex < Structures.TagInfoCount);
+  if Result then
+  begin
+    M3.ResetTag(FIdx);
     with Structures.TagInfo[comboTags.ItemIndex] do
     begin
       M3[FIdx]^.Tag := Tag;

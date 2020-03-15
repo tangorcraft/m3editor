@@ -18,10 +18,13 @@ type
     btnDelTag: TSpeedButton;
     btnDelTagCascade: TSpeedButton;
     btnMoveItemDown: TSpeedButton;
+    btnMoveTagDown: TSpeedButton;
     btnMoveItemUp: TSpeedButton;
     btnDuplicateItem: TSpeedButton;
     btnAppendItem: TSpeedButton;
     btnDelItem: TSpeedButton;
+    btnMoveTagUp: TSpeedButton;
+    btnTagEdit: TSpeedButton;
     lblItemIndex: TLabel;
     MemoDesc: TMemo;
     PanelLeft: TPanel;
@@ -44,8 +47,11 @@ type
     procedure btnDuplicateItemClick(Sender: TObject);
     procedure btnMoveItemDownClick(Sender: TObject);
     procedure btnMoveItemUpClick(Sender: TObject);
+    procedure btnMoveTagDownClick(Sender: TObject);
+    procedure btnMoveTagUpClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
     procedure btnPrevClick(Sender: TObject);
+    procedure btnTagEditClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure TableViewDblClick(Sender: TObject);
@@ -73,7 +79,7 @@ type
     procedure EditFlagField(const F: TM3Field);
     procedure EditRefField(const F: TM3Field);
   public
-    procedure ShowEditor(const M3File: TM3File; const Modal: boolean = false);
+    procedure ShowEditor(const M3File: TM3File);
     procedure ResetTagTree;
     procedure UpdateTagTree;
     procedure UpdateItemTable;
@@ -169,6 +175,26 @@ begin
       dec(FTagItemIdxFirst);
   end;
   UpdateItemTable;
+end;
+
+procedure TFTagEditor.btnTagEditClick(Sender: TObject);
+begin
+  if FM3Struct = nil then Exit;
+  MessageDlg(
+    'Change tag ID',
+    'Changing tag ID will delete all current tag data',
+    mtWarning, [mbOK], 0
+  );
+  with TFNewTag.Create(Self) do
+  try
+    if ShowEditTag(FM3File,FM3Struct^.Index) then
+    begin
+      FMain.ModelChanged(Self);
+      ResetTagTree;
+    end;
+  finally
+    Free;
+  end;
 end;
 
 procedure TFTagEditor.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -276,6 +302,22 @@ begin
   end;
 end;
 
+procedure TFTagEditor.btnMoveTagDownClick(Sender: TObject);
+begin
+  if FM3Struct = nil then Exit;
+  FM3File.MoveTagDown(FM3Struct^.Index);
+  FMain.ModelChanged(Self);
+  ResetTagTree;
+end;
+
+procedure TFTagEditor.btnMoveTagUpClick(Sender: TObject);
+begin
+  if FM3Struct = nil then Exit;
+  FM3File.MoveTagUp(FM3Struct^.Index);
+  FMain.ModelChanged(Self);
+  ResetTagTree;
+end;
+
 procedure TFTagEditor.btnAppendItemClick(Sender: TObject);
 begin
   ResizeStructure(FM3Struct^,FM3Struct^.ItemCount+1);
@@ -290,7 +332,7 @@ procedure TFTagEditor.btnInsertTagClick(Sender: TObject);
 begin
   with TFNewTag.Create(Self) do
   try
-    if ShowEditor(FM3File,FM3Struct^.Index+1) then
+    if ShowAddTag(FM3File,FM3Struct^.Index+1) then
     begin
       FMain.ModelChanged(Self);
       ResetTagTree;
@@ -304,7 +346,7 @@ procedure TFTagEditor.btnAppendTagClick(Sender: TObject);
 begin
   with TFNewTag.Create(Self) do
   try
-    if ShowEditor(FM3File,FM3File.TagCount) then
+    if ShowAddTag(FM3File,FM3File.TagCount) then
     begin
       FMain.ModelChanged(Self);
       ResetTagTree;
@@ -316,6 +358,7 @@ end;
 
 procedure TFTagEditor.btnDelTagClick(Sender: TObject);
 begin
+  if FM3Struct = nil then Exit;
   if MessageDlg(
     'Tag delete',
     'You sure you want to delete tag '+GetTreeTagName(FM3Struct^)+'?',
@@ -331,6 +374,7 @@ end;
 
 procedure TFTagEditor.btnDelTagCascadeClick(Sender: TObject);
 begin
+  if FM3Struct = nil then Exit;
   if MessageDlg(
     'Tag delete',
     'You sure you want to delete tag '+GetTreeTagName(FM3Struct^)+#13+
@@ -665,17 +709,14 @@ begin
   end;
 end;
 
-procedure TFTagEditor.ShowEditor(const M3File: TM3File; const Modal: boolean);
+procedure TFTagEditor.ShowEditor(const M3File: TM3File);
 begin
   FM3File := M3File;
 
   ResetTagTree;
   SelectStructure(nil);
 
-  if Modal then
-    ShowModal
-  else
-    Show;
+  Show;
 end;
 
 procedure TFTagEditor.ResetTagTree;

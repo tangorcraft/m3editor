@@ -140,9 +140,16 @@ end;
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
 begin
   if FTagEditor = nil then
+  begin
     Application.CreateForm(TFTagEditor,FTagEditor);
-  FTagEditor.ShowEditor(FM3File,false);
-  btnTreeViewEditor.Enabled := false;
+    FTagEditor.ShowEditor(FM3File);
+    btnTreeViewEditor.Enabled := false;
+  end
+  else
+  begin
+    FTagEditor.Free;
+    FTagEditor := nil;
+  end;
 end;
 
 procedure TFMain.btnBulkEditCHARClick(Sender: TObject);

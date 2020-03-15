@@ -27,6 +27,7 @@ type
     procedure InsertEmptyTag(const Idx: Integer);
     procedure DeleteTag(const Idx: Integer);
     procedure DeleteTagCascade(const Idx: Integer);
+    procedure ResetTag(const Idx: Integer);
 
     procedure MoveTagUp(const Idx: Integer);
     procedure MoveTagDown(const Idx: Integer);
@@ -361,6 +362,24 @@ begin
   // delete tags
   for i := 0 to length(arr)-1 do
     DeleteTag(arr[i]);
+end;
+
+procedure TM3File.ResetTag(const Idx: Integer);
+begin
+  if (Idx >= 0) and (Idx < TagCount) Then
+  with FTags[Idx] do
+  begin
+    ResizeStructure(FTags[Idx],0);
+    SetLength(ItemFields,0);
+    SetLength(RefFrom,0);
+    Tag := 0;
+    Index := Idx;
+    StructName := '';
+    Description := '';
+    Ver := 0;
+    ItemSize := 0;
+    ItemCount := 0;
+  end;
 end;
 
 procedure TM3File.MoveTagUp(const Idx: Integer);
