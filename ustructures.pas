@@ -261,8 +261,14 @@ begin
     FillChar(Struct.Data^,Struct.ItemSize,0);
     Exit(0);
   end;
-  if Index < 0 then Result := 0;
-  if Index >= Struct.ItemCount then Exit(Struct.ItemCount-1);
+  Result := Index;
+  if Result < 0 then Result := 0;
+  if Result >= Struct.ItemCount then
+  begin
+    Result := Struct.ItemCount-1;
+    FillChar((Struct.Data + Struct.ItemSize * Result)^,Struct.ItemSize,0);
+    Exit;
+  end;
   s := Struct.Data + Struct.ItemSize * Result;
   d := s + Struct.ItemSize;
   size := (Struct.ItemCount - Result - 1) * Struct.ItemSize;
