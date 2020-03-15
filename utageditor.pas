@@ -321,7 +321,7 @@ end;
 procedure TFTagEditor.btnAppendItemClick(Sender: TObject);
 begin
   ResizeStructure(FM3Struct^,FM3Struct^.ItemCount+1);
-  CopyStructureItem(FM3Struct^,FTagItemIdxFirst,FM3Struct^.ItemCount+1);
+  CopyStructureItem(FM3Struct^,FTagItemIdxFirst,FM3Struct^.ItemCount-1);
   FTagItemIdxFirst := FM3Struct^.ItemCount-1;
   FMain.ModelChanged(Self);
   UpdateTagTree;
