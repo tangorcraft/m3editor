@@ -2816,6 +2816,22 @@
         </fields>
     </structure>
     
+    <structure name="MADD" version="3" size="160">
+        <description>Model-Addition?</description>
+        <versions>
+            <version number="2" size="160" />
+            <version number="3" size="160" />
+        </versions>
+        <fields>
+            <field name="name" type="Reference" refTo="CHAR" since-version="2" />
+            <field name="unknown2" type="Reference" refTo="U32_" since-version="2" />
+            <field name="unknown3" type="Reference" refTo="U32_" since-version="2" />
+            <field name="unknown4" type="Reference" refTo="CHAR" since-version="2" />
+            <field name="unknown5" type="Reference" refTo="SCHR" since-version="2" />
+            <field name="unknown6" size="100" since-version="2" />
+        </fields>
+    </structure>
+
     <structure name="MODL" >
         <description>
             Describes the content of the file.
@@ -2827,6 +2843,7 @@
             <version number="26" size="820" />
             <version number="28" size="844" />
             <version number="29" size="856" />
+            <version number="30" size="868" />
         </versions>
         <fields>
             <field name="modelName" type="Reference" refTo="CHAR"/>
@@ -2893,6 +2910,7 @@
             <field name="splatTerrainBakeMaterials" type="Reference" refTo="STBM" since-version="26" />
             <field name="reflectionMaterial" type="Reference" refTo="REF_" since-version="28" />
             <field name="lensFlareMaterial" type="Reference" refTo="LFLR" since-version="29" />
+            <field name="bufferMaterial" type="Reference" refTo="MADD" since-version="30" />
             <field name="particles" type="Reference" refTo="PAR_" />
             <field name="particleCopies" type="Reference" refTo="PARC" />
             <field name="ribbons" type="Reference" refTo="RIB_" />
