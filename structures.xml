@@ -1,4 +1,5 @@
 <!--
+    This file is a part of "m3addon" (GPL-2.0) <https://github.com/flo/m3addon>
     This file describes the m3 model format and gets used by
     the script generateM3Library.py to generate the the file m3.py
     
