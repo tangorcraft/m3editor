@@ -94,6 +94,7 @@ begin
   FM3File := M3;
   lblIndex.Caption := 'Add new tag at index: '+IntToStr(FIdx);
   comboTags.ItemIndex := 0;
+  comboTagsSelect(nil);
 
   Result := (ShowModal = mrOK) and (comboTags.ItemIndex >= 0) and (comboTags.ItemIndex < Structures.TagInfoCount);
   if Result then
@@ -137,6 +138,7 @@ begin
       comboTags.ItemIndex := i;
       Break;
     end;
+  comboTagsSelect(nil);
 
   Result := (ShowModal = mrOK) and (comboTags.ItemIndex >= 0) and (comboTags.ItemIndex < Structures.TagInfoCount);
   if Result then
