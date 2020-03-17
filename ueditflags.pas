@@ -35,6 +35,7 @@ type
     cbValues: TCheckGroup;
     lblVal: TLabel;
     procedure BResetClick(Sender: TObject);
+    procedure cbValuesItemClick(Sender: TObject; Index: integer);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
     procedure DisplayVal;
@@ -64,6 +65,11 @@ begin
     cbValues.Checked[i] := ((FInitValue and v)<>0);
     v := v shl 1;
   end;
+  DisplayVal;
+end;
+
+procedure TFEditFlags.cbValuesItemClick(Sender: TObject; Index: integer);
+begin
   DisplayVal;
 end;
 

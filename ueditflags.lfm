@@ -63,6 +63,7 @@ object FEditFlags: TFEditFlags
       '0x40000000'
       '0x80000000'
     )
+    OnItemClick = cbValuesItemClick
     TabOrder = 0
     Data = {
       2000000002020202020202020202020202020202020202020202020202020202
