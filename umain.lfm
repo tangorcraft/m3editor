@@ -186,9 +186,12 @@ object FMain: TFMain
         Enabled = False
       end
     end
+    object MAbout: TMenuItem
+      Caption = 'About'
+      OnClick = MAboutClick
+    end
     object MDebugAction: TMenuItem
       Caption = 'MDebugAction'
-      OnClick = MDebugActionClick
       object MDebug1: TMenuItem
         Caption = 'MDebug1'
         OnClick = MDebugActionClick

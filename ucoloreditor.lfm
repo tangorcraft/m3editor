@@ -1,0 +1,80 @@
+object FEditColor: TFEditColor
+  Left = 509
+  Height = 367
+  Top = 237
+  Width = 519
+  Caption = 'Edit VEC3 value as color'
+  ClientHeight = 367
+  ClientWidth = 519
+  LCLVersion = '2.0.0.4'
+  object ShapeOld: TShape
+    Left = 448
+    Height = 65
+    Top = 6
+    Width = 65
+    Anchors = [akTop, akRight]
+  end
+  object ShapeNew: TShape
+    Left = 448
+    Height = 65
+    Top = 76
+    Width = 65
+    Anchors = [akTop, akRight]
+  end
+  object BOk: TButton
+    Left = 8
+    Height = 25
+    Top = 286
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object BCancel: TButton
+    Left = 88
+    Height = 25
+    Top = 286
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object BReset: TButton
+    Left = 168
+    Height = 25
+    Top = 286
+    Width = 75
+    Caption = 'Reset'
+    OnClick = BResetClick
+    TabOrder = 2
+  end
+  object ColorDialog: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 354
+    top = 276
+  end
+end

@@ -44,6 +44,7 @@ type
     MemoLog: TMemo;
     MDebugAction: TMenuItem;
     MDebug1: TMenuItem;
+    MAbout: TMenuItem;
     MScanRefCHAR: TMenuItem;
     MScanRefAll: TMenuItem;
     MScanRef: TMenuItem;
@@ -76,6 +77,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure MAboutClick(Sender: TObject);
     procedure MDebugActionClick(Sender: TObject);
     procedure MFileOpenClick(Sender: TObject);
     procedure MSaveAsClick(Sender: TObject);
@@ -113,7 +115,7 @@ var
 implementation
 
 uses
-  uCommon;
+  uCommon, uAbout;
 
 {$R *.lfm}
 
@@ -223,6 +225,16 @@ begin
   BMeshEditor.Visible := false;
   MDebugAction.Visible := false;
   {$ENDIF}
+end;
+
+procedure TFMain.MAboutClick(Sender: TObject);
+begin
+  with TFAbout.Create(self) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
 end;
 
 procedure TFMain.MDebugActionClick(Sender: TObject);
