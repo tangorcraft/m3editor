@@ -22,7 +22,7 @@ unit uCommon;
 interface
 
 uses
-  Classes, SysUtils, Laz2_DOM, ustructures;
+  Classes, SysUtils, Graphics, Laz2_DOM, ustructures;
 
 const
   headerTag33 = $4D443333;
@@ -41,6 +41,9 @@ procedure NextDOMElement(var el: TDOMElement);
 function FindDOMElement(const el: TDOMElement; const ElementName: DOMString): TDOMElement;
 
 function IsValidM3File(const FileName: string): boolean;
+
+function M3ClampColor(const C: Single): Single;
+function VEC3ToColor(const vec: m3VEC3_color): TColor;
 
 implementation
 
@@ -158,6 +161,42 @@ begin
   finally
     Free;
   end;
+end;
+
+function M3ClampColor(const C: Single): Single;
+begin
+  if C > 1 then Result := 1
+  else if C < 0 then Result := 0
+  else Result := C;
+end;
+
+function VEC3ToColor(const vec: m3VEC3_color): TColor;
+var
+  col: m3Color;
+  i: integer;
+begin
+  i := round(vec.R*255);
+  if i >= 255 then
+    col.red := 255
+  else if i <= 0 then
+    col.red := 0
+  else col.red := i;
+
+  i := round(vec.G*255);
+  if i >= 255 then
+    col.green := 255
+  else if i <= 0 then
+    col.green := 0
+  else col.green := i;
+
+  i := round(vec.B*255);
+  if i >= 255 then
+    col.blue := 255
+  else if i <= 0 then
+    col.blue := 0
+  else col.blue := i;
+
+  Result := RGBToColor(col.red,col.green,col.blue);
 end;
 
 initialization

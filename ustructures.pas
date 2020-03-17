@@ -57,6 +57,13 @@ type
     z: single;
   end;
 
+  Pm3VEC3_color = ^m3VEC3_color;
+  m3VEC3_color = packed record
+    R: single;
+    G: single;
+    B: single;
+  end;
+
   m3VEC4 = packed record // same as QUAT
     x: single;
     y: single;

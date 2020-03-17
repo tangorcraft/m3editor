@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Grids, ComCtrls, ustructures, uM3File, uEditString, uEditInteger,
-  uEditFlags, uEditWord, uEditByte, uEditFloat, uRefEdit, uNewTag;
+  uEditFlags, uEditWord, uEditByte, uEditFloat, uRefEdit, uNewTag, uColorEditor;
 
 type
 
@@ -95,6 +95,7 @@ type
     procedure EditFloatField(const F: TM3Field);
     procedure EditFlagField(const F: TM3Field);
     procedure EditRefField(const F: TM3Field);
+    procedure EditVEC3asColor(const F: TM3Field);
   public
     procedure ShowEditor(const M3File: TM3File);
     procedure ResetTagTree;
@@ -266,7 +267,13 @@ begin
       end;
     ftFloat: EditFloatField(FM3Struct^.ItemFields[idx]);
     ftRef, ftRefSmall: EditRefField(FM3Struct^.ItemFields[idx]);
-    else ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
+    else
+      begin
+        if Copy(fTypeName,1,4) = 'VEC3' then
+          EditVEC3asColor(FM3Struct^.ItemFields[idx])
+        else
+          ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
+      end;
   end;
   idx := idx - length(FM3Struct^.ItemFields);
   if (idx >= 0) and (idx < length(FM3Struct^.RefFrom)) then
@@ -717,6 +724,20 @@ begin
   with TFRefEdit.Create(Self) do
   try
     if ShowEditor(FM3File,F,FM3Struct^.Index) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateItemTable;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFTagEditor.EditVEC3asColor(const F: TM3Field);
+begin
+  with TFEditColor.Create(Self) do
+  try
+    if ShowEditor(F.fData) then
     begin
       FMain.ModelChanged(Self);
       UpdateItemTable;

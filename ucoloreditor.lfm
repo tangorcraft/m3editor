@@ -1,21 +1,21 @@
 object FEditColor: TFEditColor
   Left = 509
-  Height = 367
+  Height = 285
   Top = 237
-  Width = 519
+  Width = 597
   Caption = 'Edit VEC3 value as color'
-  ClientHeight = 367
-  ClientWidth = 519
+  ClientHeight = 285
+  ClientWidth = 597
   LCLVersion = '2.0.0.4'
   object ShapeOld: TShape
-    Left = 448
+    Left = 526
     Height = 65
     Top = 6
     Width = 65
     Anchors = [akTop, akRight]
   end
   object ShapeNew: TShape
-    Left = 448
+    Left = 526
     Height = 65
     Top = 76
     Width = 65
@@ -24,31 +24,227 @@ object FEditColor: TFEditColor
   object BOk: TButton
     Left = 8
     Height = 25
-    Top = 286
+    Top = 253
     Width = 75
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 0
+    TabOrder = 12
   end
   object BCancel: TButton
     Left = 88
     Height = 25
-    Top = 286
+    Top = 253
     Width = 75
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 1
+    TabOrder = 13
   end
   object BReset: TButton
     Left = 168
     Height = 25
-    Top = 286
+    Top = 253
     Width = 75
     Caption = 'Reset'
     OnClick = BResetClick
+    TabOrder = 14
+  end
+  object TrackBarRed: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 6
+    Width = 417
+    Frequency = 400
+    Max = 25500
+    OnChange = TrackBarRedChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 1
+  end
+  object editRed: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 6
+    Width = 64
+    MaxValue = 255
+    MinValue = 0
+    OnChange = editRedChange
+    TabOrder = 0
+    Value = 255
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 21
+    Top = 6
+    Width = 13
+    Caption = 'R:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackBarBlue: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 80
+    Width = 417
+    Frequency = 400
+    Max = 25500
+    OnChange = TrackBarBlueChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 5
+  end
+  object editBlue: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 80
+    Width = 64
+    MaxValue = 255
+    MinValue = 0
+    OnChange = editBlueChange
+    TabOrder = 4
+    Value = 255
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 21
+    Top = 80
+    Width = 12
+    Caption = 'B:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackBarGreen: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 43
+    Width = 417
+    Frequency = 400
+    Max = 25500
+    OnChange = TrackBarGreenChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 3
+  end
+  object editGreen: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 43
+    Width = 64
+    MaxValue = 255
+    MinValue = 0
+    OnChange = editGreenChange
     TabOrder = 2
+    Value = 255
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 21
+    Top = 43
+    Width = 14
+    Caption = 'G:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackBarHue: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 148
+    Width = 417
+    Frequency = 800
+    Max = 36000
+    OnChange = TrackBarHueChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 7
+  end
+  object editHue: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 148
+    Width = 64
+    MaxValue = 360
+    MinValue = 0
+    OnChange = editHueChange
+    TabOrder = 6
+    Value = 360
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 21
+    Top = 148
+    Width = 14
+    Caption = 'H:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackBarLum: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 218
+    Width = 417
+    Frequency = 400
+    Max = 10000
+    OnChange = TrackBarLumChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 11
+  end
+  object editLum: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 218
+    Width = 64
+    MinValue = 0
+    OnChange = editLumChange
+    TabOrder = 10
+    Value = 100
+  end
+  object Label5: TLabel
+    Left = 8
+    Height = 21
+    Top = 218
+    Width = 11
+    Caption = 'L:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackBarSat: TTrackBar
+    Left = 101
+    Height = 25
+    Top = 184
+    Width = 417
+    Frequency = 400
+    Max = 10000
+    OnChange = TrackBarSatChange
+    Position = 0
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 9
+  end
+  object editSat: TFloatSpinEdit
+    Left = 30
+    Height = 23
+    Top = 184
+    Width = 64
+    MinValue = 0
+    OnChange = editSatChange
+    TabOrder = 8
+    Value = 100
+  end
+  object Label6: TLabel
+    Left = 8
+    Height = 21
+    Top = 184
+    Width = 12
+    Caption = 'S:'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
   end
   object ColorDialog: TColorDialog
     Color = clBlack
@@ -74,7 +270,7 @@ object FEditColor: TFEditColor
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 354
-    top = 276
+    left = 543
+    top = 155
   end
 end
