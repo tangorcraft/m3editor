@@ -125,6 +125,7 @@
 		<tag ver="28" name="MODL" size="844" value="0x4D4F444C"/>
 		<tag ver="4" name="REGN" size="40" value="0x5245474E"/>
 		<tag ver="0" name="IKJT" size="32" value="0x494B4A54"/>
+		<tag ver="0" name="STBM" size="48" value="0x5354424D"/>
 	</m3tags>
 
     <structure name="Reference">
