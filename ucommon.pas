@@ -45,6 +45,8 @@ function IsValidM3File(const FileName: string): boolean;
 function M3ClampColor(const C: Single): Single;
 function VEC3ToColor(const vec: m3VEC3_color): TColor;
 
+function FloatToStrM3(const F: single): string;
+
 implementation
 
 uses
@@ -64,7 +66,7 @@ begin
     ftInt8: Result := Format('%d (0x%s)',[pInt8(F.fData)^,IntToHex(pUInt8(F.fData)^,2)]);
     ftInt16: Result := Format('%d (0x%s)',[pInt16(F.fData)^,IntToHex(pUInt16(F.fData)^,4)]);
     ftInt32: Result := Format('%d (0x%0:.8x)',[pInt32(F.fData)^]);
-    ftFloat: Result := Format('%s (0x%.8x)',[FloatToStr(PSingle(F.fData)^,FloatDotFormat),pUInt32(F.fData)^]);
+    ftFloat: Result := Format('%s (0x%.8x)',[FloatToStrM3(PSingle(F.fData)^),pUInt32(F.fData)^]);
     ftRef: with Pm3ref(F.fData)^ do
       Result := Format('refIdx: %d (Cnt: %d) (Flags = 0x%.8x)',[refIndex,refCount,refFlags]);
     ftRefSmall: with Pm3ref_small(F.fData)^ do
@@ -197,6 +199,86 @@ begin
   else col.blue := i;
 
   Result := RGBToColor(col.red,col.green,col.blue);
+end;
+
+function FloatToStrM3(const F: single): string;
+Var
+  P, PE, Q, Exponent: Integer;
+begin
+    Str(F:21, Result);
+    { Delete leading spaces }
+    while Result[1] = ' ' do
+      System.Delete(Result, 1, 1);
+    P := Pos('.', Result);
+    if P=0 then
+      Exit; { NAN or other special case }
+    { Consider removing exponent }
+    PE:=Pos('E',Result);
+    if PE > 0 then begin
+      { Read exponent }
+      Q := PE+2;
+      Exponent := 0;
+      while (Q <= Length(Result)) do begin
+        Exponent := Exponent*10 + Ord(Result[Q])-Ord('0');
+        Inc(Q);
+      end;
+      if Result[PE+1] = '-' then
+        Exponent := -Exponent;
+      if (P+Exponent < PE) and (Exponent > -6) then begin
+        { OK to remove exponent }
+        SetLength(Result,PE-1); { Trim exponent }
+        if Exponent >= 0 then begin
+          { Shift point to right }
+          for Q := 0 to Exponent-1 do begin
+            Result[P] := Result[P+1];
+            Inc(P);
+          end;
+          Result[P] := '.';
+          P := 1;
+          if Result[P] = '-' then
+            Inc(P);
+          while (Result[P] = '0') and (P < Length(Result)) and (Result[P+1] <> '.') do
+            { Trim leading zeros; conversion above should not give any, but occasionally does
+              because of rounding }
+            System.Delete(Result,P,1);
+        end else begin
+          { Add zeros at start }
+          Insert(Copy('00000',1,-Exponent),Result,P-1);
+          Result[P-Exponent] := Result[P-Exponent-1]; { Copy leading digit }
+          Result[P] := '.';
+          if Exponent <> -1 then
+            Result[P-Exponent-1] := '0';
+        end;
+        { Remove trailing zeros, but leave .0 at the end }
+        Q := Length(Result);
+        while (Q > 0) and (Result[Q] = '0') and (Result[Q-1] <> '.') do
+          Dec(Q);
+        if (Q = 0) or ((Q=1) and (Result[1] = '-')) then
+          Result := '0'
+        else
+          SetLength(Result,Q);
+      end else begin
+        { Need exponent, but remove superfluous characters }
+        { Delete trailing zeros }
+        while Result[PE-1] = '0' do begin
+          System.Delete(Result,PE-1,1);
+          Dec(PE);
+        end;
+        { If number ends in decimal point, remove it }
+        if Result[PE-1] = '.' then begin
+          System.Delete(Result,PE-1,1);
+          Dec(PE);
+        end;
+        { delete superfluous + in exponent }
+        if Result[PE+1]='+' then
+          System.Delete(Result,PE+1,1)
+        else
+          Inc(PE);
+        while Result[PE+1] = '0' do
+          { Delete leading zeros in exponent }
+          System.Delete(Result,PE+1,1)
+      end;
+    end;
 end;
 
 initialization

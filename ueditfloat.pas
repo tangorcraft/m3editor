@@ -57,7 +57,7 @@ uses
 
 procedure TFEditFloat.BResetClick(Sender: TObject);
 begin
-  Edit.Text := FloatToStr(FInitValue,FloatDotFormat);
+  Edit.Text := FloatToStrM3(FInitValue);
 end;
 
 procedure TFEditFloat.EditChange(Sender: TObject);
@@ -65,7 +65,7 @@ var
   f: single;
 begin
   f := StrToFloatDef(Edit.Text,0,FloatDotFormat);
-  lblValue.Caption := Format('Value: %s',[FloatToStr(f,FloatDotFormat)]);
+  lblValue.Caption := Format('Value: %s',[FloatToStrM3(f)]);
   lblExp.Caption := Format('Scientific: %e',[f]);
 end;
 

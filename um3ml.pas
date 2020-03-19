@@ -68,7 +68,7 @@ begin
     ftInt8: el['value'] := IntToStr(pInt8(F.fData)^);
     ftInt16: el['value'] := IntToStr(pInt16(F.fData)^);
     ftInt32: el['value'] := IntToStr(pInt32(F.fData)^);
-    ftFloat: el['value'] := FloatToStr(PSingle(F.fData)^,FloatDotFormat);
+    ftFloat: el['value'] := FloatToStrM3(PSingle(F.fData)^);
     ftRef: with Pm3ref(F.fData)^ do
       begin
         el['refIdx'] := IntToStr(refIndex);
@@ -422,9 +422,10 @@ begin
       end;
       NextDOMElement(m3tag);
     end;
+    inc(max);
     if i<>max then
       FMain.Log('M3ML Parser: Number of tags (%d) don''t match (max index+1)=%d',[i,max]);
-    Model.InitEmptyModel(max+1);
+    Model.InitEmptyModel(max);
 
     // read data from tags with index
     // skip tags without index for now

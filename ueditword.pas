@@ -109,7 +109,7 @@ begin
     EditUnSigned.Text := IntToStr(FCurValue);
   if EditHex<>Exclude then
     EditHex.Text := IntToHex(FCurValue,4);
-  lblFixed.Caption := Format('Real: %s',[FloatToStr(FCurValue / 2048.0,FloatDotFormat)]);
+  lblFixed.Caption := Format('Real: %s',[FloatToStrM3(FCurValue / 2048.0)]);
   FUpdating := false;
 end;
 
