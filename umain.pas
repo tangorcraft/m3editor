@@ -100,6 +100,8 @@ type
 
     procedure UpdateLabels;
     procedure StructuresUpdate;
+
+    procedure TryOpenFile(const FileName: string);
   public
     procedure Log(const S: string);
     procedure Log(const Fmt : string; const Args : Array of const);
@@ -154,6 +156,7 @@ begin
     Log('Can''t find "%s"',[FStructFileName]);
     FStructFileName := '';
   end;
+  TryOpenFile(ParamStr(1));
 end;
 
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
@@ -254,25 +257,7 @@ begin
     ) <> mrOK)
   then Exit;
   if OpenDialog.Execute then
-  begin
-    Log('Opening "%s"',[OpenDialog.FileName]);
-    if IsValidM3File(OpenDialog.FileName) then
-    begin
-      FCurrentFileName := OpenDialog.FileName;
-      FM3File.LoadM3File(OpenDialog.FileName);
-      FModified := false;
-      Log('%d tags loaded from "%s"',[FM3File.TagCount, OpenDialog.FileName]);
-    end
-    else
-    begin
-      Log('Parsing M3ML file: "%s"',[OpenDialog.FileName]);
-      ImportFromM3ML(FM3File, OpenDialog.FileName);
-      FModified := true;
-      FCurrentFileName := '';
-    end;
-    StructuresUpdate;
-    UpdateLabels;
-  end;
+    TryOpenFile(OpenDialog.FileName);
 end;
 
 procedure TFMain.MSaveAsClick(Sender: TObject);
@@ -360,6 +345,28 @@ begin
   if FTagEditor <> nil then
     FTagEditor.ResetTagTree;
   FM3File.ResetRefFrom;
+end;
+
+procedure TFMain.TryOpenFile(const FileName: string);
+begin
+  if (FileName = '') or not FileExists(FileName) then Exit;
+  Log('Opening "%s"',[FileName]);
+  if IsValidM3File(FileName) then
+  begin
+    FCurrentFileName := FileName;
+    FM3File.LoadM3File(FileName);
+    FModified := false;
+    Log('%d tags loaded from "%s"',[FM3File.TagCount, FileName]);
+  end
+  else
+  begin
+    Log('Parsing M3ML file: "%s"',[FileName]);
+    ImportFromM3ML(FM3File, FileName);
+    FModified := true;
+    FCurrentFileName := '';
+  end;
+  StructuresUpdate;
+  UpdateLabels;
 end;
 
 procedure TFMain.Log(const S: string);
