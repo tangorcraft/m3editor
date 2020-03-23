@@ -134,6 +134,15 @@ begin
   Structures := TM3Structures.Create;
   FM3File := TM3File.Create;
   FModified := False;
+  if FileExists(FAppPath+'internals.xml') then
+  begin
+    Log('Loading internal info from "%s"',[FAppPath+'internals.xml']);
+    Structures.LoadInternals(FAppPath+'internals.xml');
+  end
+  else
+  begin
+    Log('WARNING! Internal info file not found "%s"',[FAppPath+'internals.xml']);
+  end;
   if cbRememberStructFile.Checked then
   begin
     if not FileExists(FStructFileName) then

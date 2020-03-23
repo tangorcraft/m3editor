@@ -215,7 +215,7 @@ type
       const DefMinVer: Integer = 0; const DefMaxVer: Integer = MaxInt);
     procedure ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName, GroupName: string;
       const SubLevel, SubVerMin, SubVerMax: Integer; var Desc: string);
-    procedure LoadTagInfos;
+    procedure LoadTagInfos(const Doc: TXMLDocument);
     procedure LoadStructInfos;
 
     procedure checkVersionInfo(version: TDOMElement; const TagName: string);
@@ -225,6 +225,9 @@ type
     procedure LoadStructures(const aFileName: string);
     procedure SaveStructures(const aFileName: string);
     function StructuresLoaded: boolean;
+
+    procedure LoadInternals(const aFileName: string);
+    procedure SaveInternals(const aFileName: string);
 
     function GetStructureInfo(var m3Tag: TM3Structure): boolean;
     procedure GetTagSize(var m3Tag: TM3Structure);
@@ -544,15 +547,15 @@ begin
   end;
 end;
 
-procedure TM3Structures.LoadTagInfos;
+procedure TM3Structures.LoadTagInfos(const Doc: TXMLDocument);
 var
   el: TDOMElement;
   i, v, t, n: integer;
   tmp: TM3TagInfo;
 begin
   SetLength(FTagInfos,0);
-  if FXML = nil then Exit;
-  el := FXML.DocumentElement.FindNode('m3tags') as TDOMElement;
+  if Doc = nil then Exit;
+  el := Doc.DocumentElement.FindNode('m3tags') as TDOMElement;
   if el = nil then Exit;
   el := GetChildDOMElement(el);
   i := 0;
@@ -706,7 +709,6 @@ begin
     FXML.Free;
   FMD5Str := MD5Print(MD5File(aFileName));
   ReadXMLFile(FXML,aFileName);
-  LoadTagInfos;
   LoadStructInfos;
 end;
 
@@ -719,6 +721,42 @@ end;
 function TM3Structures.StructuresLoaded: boolean;
 begin
   Result := FXML <> nil;
+end;
+
+procedure TM3Structures.LoadInternals(const aFileName: string);
+var
+  iDoc: TXMLDocument;
+begin
+  ReadXMLFile(iDoc,aFileName);
+  try
+    LoadTagInfos(iDoc);
+  finally
+    iDoc.Free;
+  end;
+end;
+
+procedure TM3Structures.SaveInternals(const aFileName: string);
+var
+  iDoc: TXMLDocument;
+  el: TDOMElement;
+  i: Integer;
+begin
+  ReadXMLFile(iDoc,aFileName);
+  try
+    el := FindDOMElement(iDoc.DocumentElement,'m3tags');
+    while el.HasChildNodes do
+      el.RemoveChild(el.LastChild).Free;
+    for i := 0 to length(FTagInfos)-1 do
+    with el.AppendChild(iDoc.CreateElement('m3tag')) as TDOMElement do
+    begin
+      SetAttribute('name',FTagInfos[i].Name);
+      SetAttribute('ver',IntToStr(FTagInfos[i].Ver));
+      SetAttribute('size',IntToStr(FTagInfos[i].Size));
+      SetAttribute('value','0x'+IntToHex(FTagInfos[i].Tag,8));
+    end;
+  finally
+    iDoc.Free;
+  end;
 end;
 
 function TM3Structures.GetStructureInfo(var m3Tag: TM3Structure): boolean;
