@@ -199,23 +199,6 @@ begin
     end;
 end;
 
-function GuessTagValue(const Name: String): UInt32;
-var
-  l: integer;
-  arr: packed array[0..3] of Byte;
-begin
-  Result := 0;
-  l := length(Name);
-  if (l > 0) and (l <= 4) then
-  begin
-    if l > 0 then arr[3] := Ord(Name[1]) else arr[3] := 0;
-    if l > 1 then arr[2] := Ord(Name[2]) else arr[2] := 0;
-    if l > 2 then arr[1] := Ord(Name[3]) else arr[1] := 0;
-    if l > 3 then arr[0] := Ord(Name[4]) else arr[0] := 0;
-    Move(arr[0],Result,4);
-  end;
-end;
-
 procedure ReadM3TagItemField(const Data: Pointer; const Item: TDOMElement;
   const fType: TM3FieldTypes; const Size: Integer);
 var

@@ -91,6 +91,7 @@ type
     FAppPath: string;
 
     FStructFileName: string;
+    FInternalsFileName: string;
     FCurrentFileName: string;
     FLastSavedFileName: string;
 
@@ -134,10 +135,11 @@ begin
   Structures := TM3Structures.Create;
   FM3File := TM3File.Create;
   FModified := False;
-  if FileExists(FAppPath+'internals.xml') then
+  FInternalsFileName := FAppPath+'internals.xml';
+  if FileExists(FInternalsFileName) then
   begin
-    Log('Loading internal info from "%s"',[FAppPath+'internals.xml']);
-    Structures.LoadInternals(FAppPath+'internals.xml');
+    Log('Loading internal info from "%s"',[FInternalsFileName]);
+    Structures.LoadInternals(FInternalsFileName);
   end
   else
   begin
@@ -166,6 +168,11 @@ begin
     FStructFileName := '';
   end;
   TryOpenFile(ParamStr(1));
+  if Structures.InternalsChanged then
+  begin
+    Log('Updating "%s"',[FInternalsFileName]);
+    Structures.SaveInternals(FInternalsFileName);
+  end;
 end;
 
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
@@ -267,6 +274,11 @@ begin
   then Exit;
   if OpenDialog.Execute then
     TryOpenFile(OpenDialog.FileName);
+  if Structures.InternalsChanged then
+  begin
+    Log('Updating "%s"',[FInternalsFileName]);
+    Structures.SaveInternals(FInternalsFileName);
+  end;
 end;
 
 procedure TFMain.MSaveAsClick(Sender: TObject);
@@ -328,6 +340,11 @@ begin
     Log('Loading structures info from "%s"',[FStructFileName]);
     Structures.LoadStructures(FStructFileName);
     IniMain.WriteString('main','struct',FStructFileName);
+    if Structures.InternalsChanged then
+    begin
+      Log('Updating "%s"',[FInternalsFileName]);
+      Structures.SaveInternals(FInternalsFileName);
+    end;
     StructuresUpdate;
   end;
 end;
@@ -338,6 +355,11 @@ begin
   begin
     Log('Reloading structures info from "%s"',[FStructFileName]);
     Structures.LoadStructures(FStructFileName);
+    if Structures.InternalsChanged then
+    begin
+      Log('Updating "%s"',[FInternalsFileName]);
+      Structures.SaveInternals(FInternalsFileName);
+    end;
     StructuresUpdate;
   end;
 end;

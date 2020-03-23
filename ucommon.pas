@@ -47,6 +47,8 @@ function VEC3ToColor(const vec: m3VEC3_color): TColor;
 
 function FloatToStrM3(const F: single): string;
 
+function GuessTagValue(Name: String): UInt32;
+
 implementation
 
 uses
@@ -279,6 +281,23 @@ begin
           System.Delete(Result,PE+1,1)
       end;
     end;
+end;
+
+function GuessTagValue(Name: String): UInt32;
+var
+  i, l: integer;
+  arr: packed array[0..3] of Byte;
+begin
+  Result := 0;
+  l := length(Name);
+  Move(Result,arr[0],4);
+  for i := 0 to 3 do
+  begin
+    if l = 0 then Break;
+    arr[i] := ord(Name[l]);
+    dec(l);
+  end;
+  Move(arr[0],Result,4);
 end;
 
 initialization

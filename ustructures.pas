@@ -186,6 +186,8 @@ type
     rfName: string;
   end;
 
+  TM3StructSpecialType = (sstNone, sstCharBinary, sstVertices);
+
   PM3Structure = ^TM3Structure;
   TM3Structure = record
     Tag: UInt32;
@@ -199,10 +201,12 @@ type
     ItemCount: UInt32;
     ItemFields: array of TM3Field;
     RefFrom: array of TM3RefFrom;
+    SpecialType: TM3StructSpecialType;
   end;
 
   TM3Structures = class
   private
+    FInternalChanged: boolean;
     FMD5Str: string;
     FXML: TXMLDocument;
 
@@ -211,6 +215,8 @@ type
 
     function GetTagInfo(Index: Integer): TM3TagInfo;
     function GetTagInfoCount: Integer;
+    procedure InsertTagInfo(const Name: string; const Tag, Ver, Size: UInt32);
+
     procedure ParseFieldInfo(const Node: TDOMElement; var Field: TM3FieldInfo;
       const DefMinVer: Integer = 0; const DefMaxVer: Integer = MaxInt);
     procedure ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName, GroupName: string;
@@ -239,6 +245,7 @@ type
     property TagInfoCount: Integer read GetTagInfoCount;
 
     property MD5String: string read FMD5Str;
+    property InternalsChanged: boolean read FInternalChanged;
   end;
 
 var
@@ -478,6 +485,33 @@ begin
   Result := length(FTagInfos);
 end;
 
+procedure TM3Structures.InsertTagInfo(const Name: string; const Tag, Ver,
+  Size: UInt32);
+var
+  i: Integer;
+  tmp: TM3TagInfo;
+begin
+  tmp.Name := Name;
+  tmp.Tag := Tag;
+  tmp.Ver := Ver;
+  tmp.Size := Size;
+  tmp.DisplayName := Format('%s V%d (size = %d)',[Name,Ver,Size]);
+  i := length(FTagInfos);
+  SetLength(FTagInfos,i+1);
+  while (i > 0) do
+    if (FTagInfos[i-1].DisplayName > tmp.DisplayName) then
+    begin
+      FTagInfos[i] := FTagInfos[i-1];
+      dec(i);
+    end
+    else
+    begin
+      Break;
+    end;
+  FTagInfos[i] := tmp;
+  FInternalChanged := True;
+end;
+
 procedure TM3Structures.ParseSubStructInfo(var m3Tag: TM3StructInfo; SubName,
   GroupName: string; const SubLevel, SubVerMin, SubVerMax: Integer; var Desc: string);
 var
@@ -622,7 +656,13 @@ begin
         if field = nil then
           FMain.Log('Note: structure "%s" don''t have version info.',[FStructInfos[i].iStructName])
         else
-          checkVersionInfo(field,FStructInfos[i].iStructName);
+        begin
+          while Assigned(field) do
+          begin
+            checkVersionInfo(field,FStructInfos[i].iStructName);
+            NextDOMElement(field);
+          end;
+        end;
       end
       else
       begin
@@ -668,8 +708,10 @@ procedure TM3Structures.checkVersionInfo(version: TDOMElement;
   const TagName: string);
 var
   i, v, s: integer;
-
+  val: UInt32;
+  found: Boolean;
 begin
+  if (length(TagName) > 0) and (length(TagName) <= 4) then
   while Assigned(version) do
   begin
     if (version.TagName = 'version') then
@@ -678,16 +720,36 @@ begin
       s := StrToIntDef(version['size'],0);
       if v <> -1 then
       begin
+        found := false;
         for i := 0 to length(FTagInfos)-1 do
           with FTagInfos[i] do
-          if
-            (Name = TagName) and
-            (Ver = v) and
-            (Size <> s)
-          then FMain.Log(
-            'Warning: Structure "%s" V%d size (%d) is different than tag "%s" V%d (%.8x) size (%d)',
-            [TagName,v,s, Name,Ver,Tag,Size]
+          if(Name = TagName) and (Ver = v) then
+          begin
+            if Size <> s then
+            begin
+              FMain.Log(
+                'Warning: Structure "%s" V%d size (%d) is different than tag "%s" V%d (%.8x) size (%d)',
+                [TagName,v,s, Name,Ver,Tag,Size]
+              );
+            end;
+            if found then
+            begin
+              FMain.Log(
+                'Warning: Structure "%s" has duplicate version info: V%d size=%d',
+                [TagName,v,s]
+              );
+            end;
+            found := True;
+          end;
+        if not found then
+        begin
+          val := GuessTagValue(TagName);
+          FMain.Log(
+            'Note: Importing "%s" V%d size=%d to internal info (tag value from name 0x%.8x)',
+            [TagName,v,s,val]
           );
+          InsertTagInfo(TagName,val,v,s);
+        end;
       end;
       Break;
     end;
@@ -730,6 +792,7 @@ begin
   ReadXMLFile(iDoc,aFileName);
   try
     LoadTagInfos(iDoc);
+    FInternalChanged := false;
   finally
     iDoc.Free;
   end;
@@ -741,11 +804,26 @@ var
   el: TDOMElement;
   i: Integer;
 begin
-  ReadXMLFile(iDoc,aFileName);
+  if FileExists(aFileName) then
+    ReadXMLFile(iDoc,aFileName)
+  else
+  begin
+    iDoc := TXMLDocument.Create;
+    iDoc.AppendChild(iDoc.CreateElement('internals'));
+  end;
   try
     el := FindDOMElement(iDoc.DocumentElement,'m3tags');
-    while el.HasChildNodes do
-      el.RemoveChild(el.LastChild).Free;
+    if el = nil then
+    begin
+      el := iDoc.CreateElement('m3tags');
+      iDoc.DocumentElement.AppendChild(el);
+    end
+    else
+    begin
+      while el.HasChildNodes do
+        el.RemoveChild(el.LastChild).Free;
+    end;
+
     for i := 0 to length(FTagInfos)-1 do
     with el.AppendChild(iDoc.CreateElement('m3tag')) as TDOMElement do
     begin
@@ -754,6 +832,8 @@ begin
       SetAttribute('size',IntToStr(FTagInfos[i].Size));
       SetAttribute('value','0x'+IntToHex(FTagInfos[i].Tag,8));
     end;
+    WriteXMLFile(iDoc,aFileName);
+    FInternalChanged := false;
   finally
     iDoc.Free;
   end;
@@ -846,7 +926,7 @@ begin
       Exit;
     end;
   // structure not found, guessing size
-  FMain.Log('Warning: Tag size info not found: "%s" V%d (%.8x)',[m3Tag.StructName,m3Tag.Ver,m3Tag.Tag]);
+  FMain.Log('Warning: Tag size info not found: "%s" V%d (0x%.8x)',[m3Tag.StructName,m3Tag.Ver,m3Tag.Tag]);
   with m3Tag do
   if ItemCount <> 0 then
   begin
@@ -861,6 +941,8 @@ begin
       inc(ItemSize);
     ItemSize := ItemSize div ItemCount;
     FMain.Log('Note: Guessed tag item size = %d',[ItemSize]);
+    FMain.Log('Note: Adding %s tag to internal info',[StructName]);
+    InsertTagInfo(StructName,Tag,Ver,ItemSize);
   end
   else
     ItemSize := DataSize;
