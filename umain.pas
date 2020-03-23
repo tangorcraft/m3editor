@@ -402,15 +402,15 @@ end;
 
 procedure TFMain.Log(const S: string);
 begin
-  if MemoLog.Lines.Count >= 1000 then
-    MemoLog.Lines.Delete(0);
+  if MemoLog.Lines.Count >= 10000 then
+    MemoLog.Lines.Clear;
   MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+S);
 end;
 
 procedure TFMain.Log(const Fmt: string; const Args: array of const);
 begin
-  if MemoLog.Lines.Count >= 1000 then
-    MemoLog.Lines.Delete(0);
+  if MemoLog.Lines.Count >= 10000 then
+    MemoLog.Lines.Clear;
   MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+Fmt,Args);
 end;
 
