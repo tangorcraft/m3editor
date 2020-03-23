@@ -104,7 +104,7 @@ begin
   if EditUnSigned<>Exclude then
     EditUnSigned.Text := IntToStr(FCurValue);
   if EditHex<>Exclude then
-    EditHex.Text := IntToHex(FCurValue and $FFFF,8);
+    EditHex.Text := IntToHex(FCurValue,8);
   FUpdating := false;
 end;
 
