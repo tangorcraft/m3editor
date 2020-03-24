@@ -71,6 +71,7 @@ type
     procedure btnTagEditClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
+    procedure TableViewClick(Sender: TObject);
     procedure TableViewDblClick(Sender: TObject);
     procedure treeTagsSelectionChanged(Sender: TObject);
   private
@@ -84,6 +85,7 @@ type
     procedure JumpToStruct(const Ref: TM3RefFrom);
 
     procedure UpdateItemLabel;
+    procedure UpdateDescription;
 
     procedure DisplayCHAR;
     procedure DisplayStructure;
@@ -134,7 +136,7 @@ begin
   if FM3Struct <> nil then
   begin
     Structures.GetStructureInfo(FM3Struct^);
-    MemoDesc.Text := Trim(FM3Struct^.Description);
+    UpdateDescription;
     FTagItemIdxFirst := 0;
     FTagItemDisplayRange := False;
     PanelNavi.Enabled := True;
@@ -223,6 +225,11 @@ end;
 procedure TFTagEditor.FormDestroy(Sender: TObject);
 begin
   FMain.FreeTagEditor;
+end;
+
+procedure TFTagEditor.TableViewClick(Sender: TObject);
+begin
+  UpdateDescription;
 end;
 
 procedure TFTagEditor.TableViewDblClick(Sender: TObject);
@@ -436,6 +443,29 @@ begin
     lblItemIndex.Caption := Format('[%d-%d]',[FTagItemIdxFirst,FTagItemIdxLast])
   else
     lblItemIndex.Caption := Format('[%d]',[FTagItemIdxFirst])
+end;
+
+procedure TFTagEditor.UpdateDescription;
+var
+  s: string;
+  i, lvl: integer;
+begin
+  if FM3Struct = nil then Exit;
+  i := TableView.Row - 1;
+  s := '';
+  if (i >= 0) and (i < length(FM3Struct^.ItemFields)) then
+  begin
+    lvl := FM3Struct^.ItemFields[i].fSubLevel;
+    while (lvl >= 0) and (i >= 0) do
+    begin
+      with FM3Struct^.ItemFields[i] do
+        s := Format('%s:'#13'%s'#13,[fGroupName+fName,fHint]) + s;
+      dec(lvl);
+      while (i >= 0) and (FM3Struct^.ItemFields[i].fSubLevel > lvl) do
+        dec(i);
+    end;
+  end;
+  MemoDesc.Text := format('Tag %s:'#13'%s'#13'%s',[FM3Struct^.StructName,FM3Struct^.Description,s]);
 end;
 
 procedure TFTagEditor.UpdateItemTable;

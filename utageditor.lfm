@@ -451,6 +451,7 @@ object FTagEditor: TFTagEditor
       ScrollBars = ssVertical
       ShowHint = True
       TabOrder = 3
+      OnClick = TableViewClick
       OnDblClick = TableViewDblClick
       ColWidths = (
         150

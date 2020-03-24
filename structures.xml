@@ -445,7 +445,7 @@
             <field name="color" type="COLV0" />
             <field name="uv0" type="Vector2As2int16V0" />
             <field name="tangent" type="Vector3As3Fixed8V0" />
-            <field name="unused" type="fixed8" default-value="1.0" /> <!-- Can be -1.0 in old 3ds max exporter files -->
+            <field name="unused" type="fixed8" default-value="1.0" hint="Can be -1.0 in old 3ds max exporter files"/>
         </fields>
     </structure>
     <structure name="VertexFormat0x182007d" >
@@ -639,7 +639,7 @@
             <field name="color" type="COLV0" />
             <field name="uv0" type="Vector2As2int16V0" />
             <field name="tangent" type="Vector3As3Fixed8V0" />
-            <field name="unused" type="fixed8" default-value="1.0" /> <!-- Can be -1.0 in old 3ds max exporter files -->
+            <field name="unused" type="fixed8" default-value="1.0" hint="Can be -1.0 in old 3ds max exporter files"/>
         </fields>
     </structure>
     <structure name="VertexFormat0x1820061" >
@@ -1260,8 +1260,7 @@
             <field name="regions" type="Reference" refTo="REGN" />
             <field name="objects" type="Reference" refTo="BAT_" />
             <field name="msec" type="Reference" refTo="MSEC" />
-            <!-- m3: 1, m3a: 0 -->
-            <field name="unknown" type="uint32" default-value="1" />
+            <field name="unknown" type="uint32" default-value="1" hint="m3: 1, m3a: 0"/>
         </fields>
     </structure>
     
@@ -1326,19 +1325,26 @@
             <version number="4" size="152" />
         </versions>
         <fields>
-            <field name="unknown5c3999e5" type="float" default-value="1.0" />
-            <field name="unknowna3674aee" type="float" default-value="0.0" />
-            <field name="unknowndd0cc5f1" type="float" default-value="0.0" />
-            <field name="unknown6dee953c" type="float" default-value="0.0" />
-            <field name="unknowne3e2341f" type="float" default-value="0.0" />
-            <field name="unknown36188266" type="float" default-value="1.0" />
-            <field name="unknownf95a6198" type="float" default-value="0.0" />
-            <field name="unknown11a1536b" type="float" default-value="0.0" />
-            <field name="unknown1975afed" type="float" default-value="0.0" />
-            <field name="unknownde3466a8" type="float" default-value="0.0" />
-            <field name="unknownf69102f9" type="float" default-value="1.0" />
-            <field name="unknown71538f05" size="16" expected-value="0x00000000000000000000000000000000" />
-            <field name="unknowna38ff662" type="float" default-value="1.0" />
+            <field name="unknownA01" type="float" default-value="1.0" />
+            <field name="unknownA02" type="float" default-value="0.0" />
+            <field name="unknownA03" type="float" default-value="0.0" />
+            <field name="unknownA04" type="float" default-value="0.0" />
+
+            <field name="unknownB01" type="float" default-value="0.0" />
+            <field name="unknownB02" type="float" default-value="1.0" />
+            <field name="unknownB03" type="float" default-value="0.0" />
+            <field name="unknownB04" type="float" default-value="0.0" />
+
+            <field name="unknownC01" type="float" default-value="0.0" />
+            <field name="unknownC02" type="float" default-value="0.0" />
+            <field name="unknownC03" type="float" default-value="1.0" />
+            <field name="unknownC04" type="float" default-value="0.0" />
+
+            <field name="unknownD01" type="float" default-value="0.0" />
+            <field name="unknownD02" type="float" default-value="0.0" />
+            <field name="unknownD03" type="float" default-value="0.0" />
+            <field name="unknownD04" type="float" default-value="1.0" />
+
             <field name="unknownb2fb85a2" type="float" default-value="0.0" />
             <field name="unknownaaff49cf" type="float" default-value="0.0" />
             <field name="unknownfdfde349" type="float" default-value="0.0" />
@@ -1370,8 +1376,7 @@
             <version number="0" size="24" />
         </versions>
         <fields>
-            <!-- List of indices for the PATU list defined in the model -->
-            <field name="partIndex" type="Reference" refTo="U32_" />
+            <field name="partIndex" type="Reference" refTo="U32_" hint="List of indices for the PATU list defined in the model"/>
             <field name="name" type="Reference" refTo="CHAR" />
         </fields>
     </structure>
@@ -1422,16 +1427,18 @@
                     <bit mask="0x10" name="invertColor" />
                     <bit mask="0x20" name="clampColor" />
                     <bit mask="0x100" name="useParticleFlipBook" />
-                    <bit mask="0x200" name="isVideo" /> <!-- if texture is ogg video -->
+                    <bit mask="0x200" name="isVideo" />
                     <bit mask="0x400" name="colorEnabled" />
                     <bit mask="0x4000" name="ignoredFresnelFlag1" />
                     <bit mask="0x8000" name="ignoredFresnelFlag2" />
                     <bit mask="0x10000" name="fresnelLocalTransform" />
                     <bit mask="0x20000" name="fresnelDoNotMirror" />
                 </bits>
+				<hint>isVideo: if texture is ogg video</hint>
             </field>
             <field name="uvSource" type="uint32" />
-            <!--
+            <field name="colorChannelSetting" type="uint32" default-value="0">
+            <hint>
                 Allowed colorChannelSetting values:
                 0: RGB
                 1: RGBA (used for alpha)
@@ -1439,8 +1446,8 @@
                 3: Red Only
                 4: Green Only
                 5: Blue Only
-            -->
-            <field name="colorChannelSetting" type="uint32" default-value="0" />
+            </hint>
+			</field>
             <field name="brightMult" type="FloatAnimationReference" />
             <field name="midtoneOffset" type="FloatAnimationReference" />
             <!-- unknown3b61017a needs to be 2 for volume noise materials -->
@@ -1448,13 +1455,13 @@
             <field name="noiseAmp" type="float" default-value="0.8" since-version="24" />
             <field name="noiseFreq" type="float" default-value="0.5" since-version="24" />
             <field name="rttChannel" type="int32" default-value="-1" />
-            <field name="videoFrameRate" type="uint32" default="0" /> <!-- if video is enabled default should be 24 -->
+            <field name="videoFrameRate" type="uint32" default="0" hint="if video is enabled default should be 24"/>
             <field name="videoStartFrame" type="uint32" default="0" />
-            <field name="videoEndFrame" type="int32" default-value="0" /> <!-- -1 means till the end-->
-            <field name="videoMode" type="uint32" default-value="0" /><!-- 0 is loop, 1 is hold-->
-            <field name="videoSyncTiming" type="uint32" default-value="0" /><!-- boolean -->
-            <field name="videoPlay" type="UInt32AnimationReference" />  <!-- SDU3 is used for aniamtion-->
-            <field name="videoRestart" type="UInt32AnimationReference" /> <!-- SDFG is used for aniamtion-->
+            <field name="videoEndFrame" type="int32" default-value="0" hint="-1 means till the end"/>
+            <field name="videoMode" type="uint32" default-value="0" hint="0 is loop, 1 is hold"/>
+            <field name="videoSyncTiming" type="uint32" default-value="0" hint="boolean"/>
+            <field name="videoPlay" type="UInt32AnimationReference" hint="SDU3 is used for aniamtion"/>
+            <field name="videoRestart" type="UInt32AnimationReference" hint="SDFG is used for aniamtion"/>
             <field name="flipBookRows" type="uint32" default-value="0" />
             <field name="flipBookColumns" type="uint32" default-value="0" />
             <field name="flipBookFrame" type="UInt16AnimationReference" />
@@ -1465,12 +1472,12 @@
             <field name="unknowna44bf452" type="FloatAnimationReference" />
             <field name="brightness" type="FloatAnimationReference" />            
             <field name="triPlanarOffset" type="Vector3AnimationReferenceV0" since-version="24"/>
-            <field name="triPlanarScale" type="Vector3AnimationReferenceV0" since-version="24"/> <!-- default (1.0, 1.0, 1.0)-->
+            <field name="triPlanarScale" type="Vector3AnimationReferenceV0" since-version="24" hint="default (1.0, 1.0, 1.0)"/>
             <field name="unknownbd3f7b5d" type="int32" default-value="-1" />
             <field name="fresnelType" type="uint32" default-value="0" />               
             <field name="fresnelExponent" type="float" default-value="4.0" />
             <field name="fresnelMin" type="float" default-value="0.0" />
-            <field name="fresnelMaxOffset" type="float" default-value="1.0" /><!-- fresnelMin + fresnelMaxOffset = fresnelMax-->
+            <field name="fresnelMaxOffset" type="float" default-value="1.0" hint="fresnelMin + fresnelMaxOffset = fresnelMax"/>
             <field name="unknown15" type="float" default-value="1.0" />
             <field name="unknown763da0ad" size="8" default-value="0x0000000000000000" since-version="25" />
             <field name="fresnelInvertedMaskX" type="float" default-value="1.0" since-version="25" /> <!-- default=(1.0, 1.0, 1.0)-->
@@ -1496,23 +1503,20 @@
             <field name="name" type="Reference" refTo="CHAR" />
             <field name="additionalFlags" type="uint32" default-value="0">
                 <bits>
-                    <bit mask="0x1" name="useDepthBlendFalloff" /> <!-- always set if depthBlendFalloff is != 0.0 -->
-                    <bit mask="0x4" name="makesUseOfVertexColor" /> <!-- calculated value: based on the flag useVertexColor. It is always set if the material is used by a particle system. -->
-                    <bit mask="0x8" name="makesUseOfVertexAlpha" /> <!-- Calculated value: based on the flag useVertexColor and the particle flag makesUseOfVertexAlpha -->
+                    <bit mask="0x1" name="useDepthBlendFalloff" />
+                    <bit mask="0x4" name="makesUseOfVertexColor" />
+                    <bit mask="0x8" name="makesUseOfVertexAlpha" />
                     <bit mask="0x200" name="unknownFlag0x200" />
                 </bits>
+				<hint>
+					useDepthBlendFalloff: always set if depthBlendFalloff is != 0.0
+					makesUseOfVertexColor: calculated value: based on the flag useVertexColor. It is always set if the material is used by a particle system.
+					makesUseOfVertexAlpha: Calculated value: based on the flag useVertexColor and the particle flag makesUseOfVertexAlpha
+				</hint>
             </field>     
             <field name="flags" type="uint32" default-value="0" >
                 <bits>
-                    <!-- if useVertexColor is set, the following flags need also to be set:
-                      * makesUseOfVertexColor of the additionaFlags field
-                      * hasVertexColors of the vFlags field of the model
-                    -->
                     <bit mask="0x1" name="useVertexColor" /> 
-                    <!-- if useVertexAlpha is set, the following flags need also to be set:
-                      * makesUseOfVertexAlpha of the additionaFlags field
-                      * hasVertexColors of the vFlags field of the model
-                    -->
                     <bit mask="0x2" name="useVertexAlpha" />
                     <bit mask="0x4" name="unfogged" />
                     <bit mask="0x8" name="twoSided" />
@@ -1520,7 +1524,7 @@
                     <bit mask="0x20" name="noShadowsCast" />
                     <bit mask="0x40" name="noHitTest"/>
                     <bit mask="0x80" name="noShadowsReceived"/>
-                    <bit mask="0x100" name="depthPrepass" /> <!-- Z Fill Pass -->
+                    <bit mask="0x100" name="depthPrepass (Z Fill Pass)" />
                     <bit mask="0x200" name="useTerrainHDR" />
                     <bit mask="0x400" name="unknown0x400" />
                     <bit mask="0x800" name="simulateRoughness"/> <!-- formerly: splatUVfix -->
@@ -1531,7 +1535,7 @@
                     <bit mask="0x10000" name="transparencyDepthEffects" /> <!-- formerly: transparency -->
                     <bit mask="0x20000" name="transparencyLocalLights" />
                     <bit mask="0x40000" name="disableSoft" />
-                    <bit mask="0x80000" name="darkNormalMapping" /> <!-- actually doubleLambert -->
+                    <bit mask="0x80000" name="darkNormalMapping (actually doubleLambert)" />
                     <bit mask="0x100000" name="hairLayerSorting" />
                     <bit mask="0x200000" name="acceptSplats" />
                     <bit mask="0x400000" name="decalRequiredOnLowEnd" />
@@ -1543,8 +1547,17 @@
                     <bit mask="0x10000000" name="zpFillRequiredOnLowEnd" />
                     <bit mask="0x20000000" name="excludeFromHighlighting" />
                     <bit mask="0x40000000" name="clampOutput" />
-                    <bit mask="0x80000000" name="geometryVisible" /><!-- added between version 15 and 18 propably. => Should be 0 in 15-->
+                    <bit mask="0x80000000" name="geometryVisible"/>
                 </bits>
+				<hint>
+                    if useVertexColor is set, the following flags need also to be set:
+                      * makesUseOfVertexColor of the additionaFlags field
+                      * hasVertexColors of the vFlags field of the model
+                    if useVertexAlpha is set, the following flags need also to be set:
+                      * makesUseOfVertexAlpha of the additionaFlags field
+                      * hasVertexColors of the vFlags field of the model
+                    geometryVisible was added between version 15 and 18 propably. => Should be 0 in 15
+				</hint>
             </field>
             <field name="blendMode" type="uint32" />
             <field name="priority" type="int32" />
@@ -1560,7 +1573,7 @@
                </bits>
             </field>
             <field name="specularity" type="float" />
-            <field name="depthBlendFalloff" type="float" default-value="0.0" /> <!-- Only used if the bit useDepthBlendFalloff of additionalFlags is set, typically set for particle systems -->
+            <field name="depthBlendFalloff" type="float" default-value="0.0" hint="Only used if the bit useDepthBlendFalloff of additionalFlags is set, typically set for particle systems"/>
             <field name="cutoutThresh" type="uint8" default-value="0" />
             <field name="unknownAt41" size="3" expected-value="0x000000" />
             <field name="specMult" type="float" default-value="1.0" />
@@ -1921,14 +1934,15 @@
             <field name="unknownFloat5" type="float" default-value="1.0"/>
             <field name="unknown9" type="int32" default-value="-1" />
             <field name="unknown700df5cf" size="20"/>
-            <!-- particleType: 
+            <field name="particleType" type="uint32">
+            <hint>particleType: 
             0,2,3,4,5=Square Billbords ?
             1= Speed Scaled and Rotated Billbords influenced by lengthWidhtRatio 
             6 = Rectangular Billbords (see lengthWidthRatio)
             7 = Quads with speed as normal
             9 = Quads that scratches between spawn point and current location
-            -->
-            <field name="particleType" type="uint32"/>
+            </hint>
+			</field>
             <field name="lengthWidthRatio" type="float" default-value="1.0" />
             <field name="unknown11" size="8" default-value="0x0000000000000000" />
             <field name="unknownFloat7" type="float" default-value="1.0"/>
@@ -2238,8 +2252,8 @@
         </versions>
         <fields>
             <field name="matrix" type="Matrix44" />
-            <field till-version="1" name="unknownAt64" type="uint32" default-value="0x3ca14285" />
-            <!-- Shape types:
+            <field till-version="1" name="unknownAt64" type="uint32" default-value="0x3ca14285">
+            <hint>Shape types:
                 0 = box
                 1 = sphere
                 2 = capsule
@@ -2247,7 +2261,8 @@
                 4 = convex hull
                 5 = mesh
                 6+ = invalid
-            -->
+            </hint>
+			</field>
             <field name="shape" type="uint8" />
             <!-- Is not always 0 (in Version 1 and 3). It's propably the unintialized part of shape: -->
             <field name="unknown1c286108" type="uint8" default-value="0" />
@@ -2545,12 +2560,12 @@
             <field name="unknown76f48851" type="float" expected-value="0"/>
             <field name="unknownfe32e718" type="float" default-value="0"/>
             <field name="tipOffsetZ" type="float" />
-            <field name="centerBias" type="float" /> <!--middle point position-->
+            <field name="centerBias" type="float" hint="middle point position"/>
             <field name="unknowncae7b5f7" type="float" default-value="1.0" />
             <field name="unknown8652c547" type="float" default-value="1.0" />
             <field name="unknown6a1cb998" type="float" default-value="1.0" />
             <field name="unknownbca99a4e" size="12" since-version="8" />
-            <field name="radiusScale" type="Vector3AnimationReferenceV0" /> <!--X=Start, Y=Middle, Z=END-->
+            <field name="radiusScale" type="Vector3AnimationReferenceV0" hint="X=Start, Y=Middle, Z=END"/>
             <field name="twist" type="FloatAnimationReference" />
             <field name="unknown504bc931" type="uint32" expected-value="0"/>
             <field name="unknown8cfd3002" type="uint32" expected-value="0"/>
@@ -2565,8 +2580,7 @@
             <field name="stretchLimit" type="float" />
             <field name="unknownc7004d01" type="float" default-value="0.0"/>
             <field name="unknown44a749fe" type="float" default-value="0.0"/>
-            <!-- noEndPoints must be 0 if there are endPoints (SRIB)-->
-            <field name="noEndPoints" type="uint32" default-value="1"/>
+            <field name="noEndPoints" type="uint32" default-value="1" hint="noEndPoints must be 0 if there are endPoints (SRIB)"/>
             <field till-version="6" name="unknown20683e1b" type="uint32" default-value="0"/> <!--overseer2-->
             <field till-version="6" name="unknowndf1a587b" type="uint32" default-value="0"/> <!--overseer2-->
             <field name="unknownfb168d8c" size="4" default-value="0x00000000" since-version="9"/>
@@ -2716,7 +2730,7 @@
     </structure>
     
     <structure name="MADD" version="3" size="160">
-        <description>Model-Addition?</description>
+        <description>Model-Addition? More like Material addition</description>
         <versions>
             <version number="2" size="160" />
             <version number="3" size="160" />

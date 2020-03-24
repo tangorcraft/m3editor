@@ -153,6 +153,7 @@ type
     fiDefault: string;
     fiExpected: string;
     fiRefTo: string;
+    fiHint: string;
   end;
 
   TM3StructInfo = record
@@ -176,6 +177,7 @@ type
     fDefault: string;
     fExpected: string;
     fRefTo: string;
+    fHint: string;
   end;
 
   TM3RefFrom = record
@@ -441,8 +443,9 @@ end;
 procedure TM3Structures.ParseFieldInfo(const Node: TDOMElement;
   var Field: TM3FieldInfo; const DefMinVer: Integer; const DefMaxVer: Integer);
 var
-  bit: TDOMElement;
+  el: TDOMElement;
   i: integer;
+  s: string;
 begin
   Field.fiName := Node['name'];
   if Field.fiName = '' then
@@ -455,19 +458,29 @@ begin
   Field.fiDefault := Node['default-value'];
   Field.fiExpected := Node['expected-value'];
   Field.fiRefTo := Node['refTo'];
-  bit := Node.FindNode('bits') as TDOMElement;
-  if Assigned(bit) then
+  Field.fiHint := Node['hint'];
+  el := FindDOMElement(Node,'hint');
+  if Assigned(el) then
+  begin
+    if Field.fiHint <> '' then
+      Field.fiHint := Field.fiHint + #13 + el.TextContent
+    else
+      Field.fiHint := el.TextContent;
+  end;
+
+  el := FindDOMElement(Node,'bits');
+  if Assigned(el) then
   begin
     Field.fiTypeFlag := true;
     for i := 0 to 31 do
       Field.fiTypeFlagBits[i]:='';
-    bit := GetChildDOMElement(bit);
-    while Assigned(bit) do
+    el := GetChildDOMElement(el);
+    while Assigned(el) do
     begin
-      i := GetFlagBitIndex(bit['mask']);
+      i := GetFlagBitIndex(el['mask']);
       if i <> -1 then
-        Field.fiTypeFlagBits[i]:=bit['name'];
-      NextDOMElement(bit);
+        Field.fiTypeFlagBits[i]:=el['name'];
+      NextDOMElement(el);
     end;
   end
   else
@@ -546,7 +559,12 @@ begin
   end;
   el := struct.FindNode('description') as TDOMElement;
   if el <> nil then
-    Desc := el.TextContent;
+  begin
+    if Desc='' then
+      Desc := el.TextContent
+    else
+      Desc := Desc + #13 + el.TextContent;
+  end;
 
   el := struct.FindNode('fields') as TDOMElement;
   if el = nil then
@@ -572,7 +590,7 @@ begin
         SubLevel + 1,
         m3Tag.iFields[i].fiVerMin,
         m3Tag.iFields[i].fiVerMax,
-        m3Tag.iFields[i].fiTypeInfo
+        m3Tag.iFields[i].fiHint
       );
       i := length(m3Tag.iFields)-1;
     end;
@@ -690,7 +708,7 @@ begin
               iFields[j].fiName + '.', 1,
               iFields[j].fiVerMin,
               iFields[j].fiVerMax,
-              iFields[j].fiTypeInfo);
+              iFields[j].fiHint);
             j := length(iFields)-1;
           end;
 
@@ -907,6 +925,7 @@ begin
           fDefault := fiDefault;
           fExpected := fiExpected;
           fRefTo := fiRefTo;
+          fHint := fiHint;
         end;
         inc(j);
       end;
