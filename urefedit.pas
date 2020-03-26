@@ -147,10 +147,8 @@ begin
     begin
       FRef^.refIndex := 0;
       FRef^.refCount := 0;
-      if F.fType = ftRef then
-        FRef^.refFlags := 0;
-    end
-    else if F.fType = ftRef then
+    end;
+    if F.fType = ftRef then
       FRef^.refFlags := StrToIntDef('0x'+EditFlags.Text,0);
   end;
 end;

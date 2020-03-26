@@ -535,8 +535,6 @@ begin
                   inc(Result);
                 refCount := 0;
                 refIndex := 0;
-                if ItemFields[j].fType = ftRef then
-                  refFlags := 0;
               end;
             end;
           end;
