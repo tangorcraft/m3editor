@@ -148,6 +148,7 @@ begin
         f.Read(FTags[i].Data^, tagDataSize);
         FTags[i].ItemCount := tagList[i].dataCount;
         Structures.GetTagSize(FTags[i]);
+        FTags[i].SpecialType := sstNone;
       end;
     end
     else
@@ -442,7 +443,10 @@ begin
   // this function have 5 (five) indexes and 3 (three) nested loops
   // stay strong and don't get lost
   for i := 0 to TagCount - 1 do
+  begin
     SetLength(FTags[i].RefFrom,0);
+    FTags[i].SpecialType := sstNone;
+  end;
   for i := 0 to TagCount - 1 do
   begin
     Structures.GetStructureInfo(FTags[i]);
@@ -468,6 +472,8 @@ begin
                 '%d: %s [%d] -> %s (refCount = %d)',
                 [i, FTags[i].StructName, idx, ItemFields[j].fGroupName+ItemFields[j].fName, refCount]
               );
+              if (ItemFields[j].fRefToSpecial<>sstNone) and (FTags[refIndex].SpecialType = sstNone) then
+                FTags[refIndex].SpecialType := ItemFields[j].fRefToSpecial;
             end;
           end;
       end;

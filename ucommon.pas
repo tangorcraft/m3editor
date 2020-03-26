@@ -101,7 +101,7 @@ function GetTreeTagName(const tag: TM3Structure): string;
 var
   s: string;
 begin
-  if tag.StructName = 'CHAR' then
+  if (tag.StructName = 'CHAR') and (tag.SpecialType <> sstCharBinary) then
   begin
     s := PChar(tag.Data);
     Result:=Format('%d: %s (%d) "%s"',[tag.Index,tag.StructName,length(s)+1,s]);

@@ -112,7 +112,15 @@ begin
       end;
       if StructName = 'CHAR' then
       begin
-        m3tag['value'] := PChar(Data);
+        if SpecialType = sstCharBinary then
+        begin
+          m3tag['binary'] := '1';
+          item := m3ml.CreateElement('data');
+          m3tag.AppendChild(item);
+          SetFieldValueBinary(item,Data,ItemCount);
+        end
+        else
+          m3tag['value'] := PChar(Data);
       end
       else
       begin
@@ -300,7 +308,7 @@ begin
     else
     begin
       StructName := m3tag['name'];
-      if StructName = 'CHAR' then
+      if (StructName = 'CHAR') and (m3tag['binary'] <> '1') then
       begin
         Tag := CHARTag;
         Ver := 0;

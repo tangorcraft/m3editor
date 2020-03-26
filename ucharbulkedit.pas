@@ -78,9 +78,9 @@ var
   i, l: Integer;
   p: Pointer;
 begin
-  if Struct.StructName <> 'CHAR' then
+  if (Struct.StructName <> 'CHAR') and (Struct.SpecialType = sstCharBinary) then
   begin
-    FMain.Log('CHAR bulk edit: Error: tag at index %d is not "CHAR" tag.');
+    FMain.Log('CHAR bulk edit: Error: tag at index %d is not "CHAR" tag or is a binary CHAR tag.');
     Exit;
   end;
   l := Struct.ItemCount;
@@ -106,7 +106,7 @@ begin
   FInitCharTags.Clear;
   for i := 0 to M3.TagCount-1 do
   with m3[i]^ do
-    if StructName='CHAR' then
+    if (StructName = 'CHAR') and (SpecialType <> sstCharBinary) then
     begin
       s := PChar(Data);
       FInitCharTags.Add(IntToStr(Index)+':'+s);

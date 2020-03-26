@@ -137,6 +137,7 @@ type
     ftRef, ftRefSmall,
     ftSubStruct
   );
+  TM3StructSpecialType = (sstNone, sstCharBinary, sstVertices);
 
   TM3FieldInfo = record
     fiName: string;
@@ -153,6 +154,7 @@ type
     fiDefault: string;
     fiExpected: string;
     fiRefTo: string;
+    fiRefToSpecial: TM3StructSpecialType;
     fiHint: string;
   end;
 
@@ -177,6 +179,7 @@ type
     fDefault: string;
     fExpected: string;
     fRefTo: string;
+    fRefToSpecial: TM3StructSpecialType;
     fHint: string;
   end;
 
@@ -187,8 +190,6 @@ type
     rfRefFieldOffset: Integer;
     rfName: string;
   end;
-
-  TM3StructSpecialType = (sstNone, sstCharBinary, sstVertices);
 
   PM3Structure = ^TM3Structure;
   TM3Structure = record
@@ -458,6 +459,15 @@ begin
   Field.fiDefault := Node['default-value'];
   Field.fiExpected := Node['expected-value'];
   Field.fiRefTo := Node['refTo'];
+
+  if Node['char-binary'] = '1' then
+    Field.fiRefToSpecial := sstCharBinary
+  else
+  if Node['ref-vertices'] = '1' then
+    Field.fiRefToSpecial := sstVertices
+  else
+    Field.fiRefToSpecial := sstNone;
+
   Field.fiHint := Node['hint'];
   el := FindDOMElement(Node,'hint');
   if Assigned(el) then
@@ -892,6 +902,7 @@ begin
       fDefault := '';
       fExpected := '';
       fRefTo := '';
+      fRefToSpecial := sstNone;
     end;
     Exit;
   end;
@@ -925,6 +936,7 @@ begin
           fDefault := fiDefault;
           fExpected := fiExpected;
           fRefTo := fiRefTo;
+          fRefToSpecial := fiRefToSpecial;
           fHint := fiHint;
         end;
         inc(j);

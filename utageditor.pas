@@ -237,7 +237,7 @@ var
   idx: integer;
 begin
   if TableView.Col <> COL_Value then Exit;
-  if (FM3Struct^.StructName = 'CHAR') and (TableView.Row = 1) then
+  if (FM3Struct^.StructName = 'CHAR') and (FM3Struct^.SpecialType <> sstCharBinary) and (TableView.Row = 1) then
   begin
     EditCHAR;
     Exit;
@@ -482,7 +482,7 @@ begin
     treeTags.Selected.DeleteChildren;
   r := TableView.Row;
   c := TableView.Col;
-  if FM3Struct^.StructName = 'CHAR' then DisplayCHAR
+  if (FM3Struct^.StructName = 'CHAR') and (FM3Struct^.SpecialType <> sstCharBinary) then DisplayCHAR
   else
     DisplayStructure;
   UpdateItemLabel;
