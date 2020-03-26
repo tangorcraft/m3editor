@@ -196,7 +196,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="19">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -323,6 +323,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uAbout"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="u3dviewform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="F3dView"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="u3DViewForm"/>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

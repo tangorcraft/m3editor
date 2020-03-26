@@ -51,6 +51,7 @@ type
     y: single;
   end;
 
+  Pm3VEC3 = ^m3VEC3;
   m3VEC3 = packed record
     x: single;
     y: single;
@@ -78,6 +79,7 @@ type
     w: m3VEC4;
   end;
 
+  Pm3Normal4b = ^m3Normal4b;
   m3Normal4b = packed record
     x: Byte;
     y: Byte;
@@ -86,12 +88,14 @@ type
     // formula (((i / 255.0) * 2) - 1) to get the actual float value [-1; 1]
   end;
 
+  Pm3UV = ^m3UV;
   m3UV = packed record
     x: Int16;
     y: Int16;
     // formula (i / 2048.0) to get the actual float value
   end;
 
+  Pm3Color = ^m3Color;
   m3Color = packed record
     blue: Byte;
     green: Byte;
@@ -99,7 +103,7 @@ type
     alpha: Byte;
   end;
 
-  TM3VerticleFull = record
+  TM3VertexInfoFull = record
     position: m3VEC3;
     boneWeight0: UInt8;
     boneWeight1: UInt8;

@@ -1,0 +1,48 @@
+object F3dView: TF3dView
+  Left = 365
+  Height = 637
+  Top = 161
+  Width = 812
+  Caption = 'M3 Model - 3D View'
+  ClientHeight = 637
+  ClientWidth = 812
+  LCLVersion = '2.0.0.4'
+  object PanelBottom: TPanel
+    Left = 0
+    Height = 121
+    Top = 516
+    Width = 812
+    Align = alBottom
+    BevelInner = bvLowered
+    TabOrder = 0
+  end
+  object PanelLeft: TPanel
+    Left = 0
+    Height = 516
+    Top = 0
+    Width = 160
+    Align = alLeft
+    BevelOuter = bvLowered
+    Caption = 'PanelLeft'
+    TabOrder = 1
+  end
+  object PanelRight: TPanel
+    Left = 642
+    Height = 516
+    Top = 0
+    Width = 170
+    Align = alRight
+    BevelOuter = bvLowered
+    Caption = 'PanelRight'
+    TabOrder = 2
+  end
+  object Panel3D: TPanel
+    Left = 160
+    Height = 516
+    Top = 0
+    Width = 482
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 3
+  end
+end

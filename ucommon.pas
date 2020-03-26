@@ -36,6 +36,11 @@ function FieldValToStr(const F: TM3Field): string;
 function RepeatStr(const str: string; count: integer): string;
 function GetTreeTagName(const tag: TM3Structure): string;
 
+function ReadFieldData(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
+function WriteFieldData(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
+
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
 procedure NextDOMElement(var el: TDOMElement);
 function FindDOMElement(const el: TDOMElement; const ElementName: DOMString): TDOMElement;
@@ -114,6 +119,54 @@ begin
       s := 'V'+IntToStr(tag.Ver)+', ';
     result := Format('%d: %s (%sCnt %d)',[tag.Index,tag.StructName,s,tag.ItemCount]);
   end;
+end;
+
+function ReadFieldData(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
+var
+  i, size: Integer;
+  p: Pointer;
+begin
+  Result := false;
+  if (ItemIndex < 0) or (ItemIndex >= tag.ItemCount) then Exit;
+  i := 0;
+  while (i < length(tag.ItemFields)) and (tag.ItemFields[i].fName <> FieldName) do inc(i);
+  if i >= length(tag.ItemFields) then Exit;
+  if tag.ItemFields[i].fSize > ValSize then Exit;
+  if tag.ItemFields[i].fSize < ValSize then
+  begin
+    FillChar(Val,ValSize,0);
+    size := tag.ItemFields[i].fSize;
+  end
+  else
+    size := ValSize;
+  p := tag.Data + tag.ItemSize * ItemIndex + tag.ItemFields[i].fOffset;
+  Move(p^,Val,size);
+  Result := true;
+end;
+
+function WriteFieldData(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
+var
+  i, size: Integer;
+  p: Pointer;
+begin
+  Result := false;
+  if (ItemIndex < 0) or (ItemIndex >= tag.ItemCount) then Exit;
+  i := 0;
+  while (i < length(tag.ItemFields)) and (tag.ItemFields[i].fName <> FieldName) do inc(i);
+  if i >= length(tag.ItemFields) then Exit;
+  if tag.ItemFields[i].fSize < ValSize then Exit;
+  p := tag.Data + tag.ItemSize * ItemIndex + tag.ItemFields[i].fOffset;
+  if tag.ItemFields[i].fSize > ValSize then
+  begin
+    FillChar(p^,tag.ItemFields[i].fSize,0);
+    size := ValSize;
+  end
+  else
+    size := tag.ItemFields[i].fSize;
+  Move(Val,p^,size);
+  Result := true;
 end;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;

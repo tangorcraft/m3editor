@@ -53,6 +53,12 @@ type
     function RepairReferenceCount: Integer;
     function ScanReferences(const CHAROnly: Boolean): Integer;
 
+    function FollowRefField(Tag: TM3Structure; const ItemIndex: Integer; const FieldName: string): PM3Structure;
+
+    // specific model data functions
+    function GetModelTag: PM3Structure;
+    function GetVerticesTag: PM3Structure;
+
     property Tags[Index: Integer]: PM3Structure read GetTag; default;
     property TagCount: Integer read GetTagCount;
   end;
@@ -541,6 +547,52 @@ begin
       end;
     end;
   end;
+end;
+
+function TM3File.FollowRefField(Tag: TM3Structure;
+  const ItemIndex: Integer; const FieldName: string): PM3Structure;
+var
+  i: Integer;
+  p: Pm3ref_small;
+begin
+  Result := nil;
+  if (ItemIndex < 0) or (FieldName = '') then Exit;
+  Structures.GetStructureInfo(Tag);
+  for i := 0 to length(Tag.ItemFields)-1 do
+    if (ItemIndex < Tag.ItemCount) then
+    with Tag.ItemFields[i] do
+      if (fType in [ftRef,ftRefSmall]) and (fName = FieldName) then
+      begin
+        p := Tag.Data + Tag.ItemSize*ItemIndex + fOffset;
+        with p^ do
+        if (refIndex > 0) and (refCount > 0) and (refIndex < TagCount) then
+        begin
+          Result := @FTags[refIndex];
+        end;
+        Exit;
+      end;
+end;
+
+function TM3File.GetModelTag: PM3Structure;
+begin
+  if TagCount < 2 then Exit(nil);
+  if (FTags[0].Tag <> headerTag33)and(FTags[0].Tag <> headerTag34) then Exit(nil);
+  with Pm3Header(FTags[0].Data)^ do
+  begin
+    if (ref_MODL.refIndex > 0) and (ref_MODL.refIndex < TagCount) and
+       (FTags[ref_MODL.refIndex].StructName = 'MODL')
+    then Result := @FTags[ref_MODL.refIndex]
+    else Result := nil;
+  end;
+end;
+
+function TM3File.GetVerticesTag: PM3Structure;
+var
+  MODL: PM3Structure;
+begin
+  MODL := GetModelTag;
+  if MODL <> nil then
+    Result := FollowRefField(MODL^,0,'vertices');
 end;
 
 end.
