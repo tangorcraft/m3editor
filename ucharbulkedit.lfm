@@ -63,6 +63,7 @@ object FCHARBulkEdit: TFCHARBulkEdit
     Anchors = [akLeft, akBottom]
     Caption = 'Update entries number in references'
     Checked = True
+    Enabled = False
     State = cbChecked
     TabOrder = 4
   end

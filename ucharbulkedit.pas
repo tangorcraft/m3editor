@@ -95,7 +95,6 @@ begin
       Pm3ref_small(p)^.refCount := Struct.ItemCount;
     end;
   end;
-  FMain.ModelChanged(Self);
 end;
 
 procedure TFCHARBulkEdit.ShowEditor(const M3: TM3File);
@@ -123,6 +122,7 @@ begin
       else
         FMain.Log('CHAR bulk edit: index "%s" on line %d out of bounds',[MemoCHAR.Lines.Names[i],i+1]);
     end;
+    FMain.ModelChanged(Self);
   end;
 end;
 

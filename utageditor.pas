@@ -600,17 +600,7 @@ begin
       l := FM3Struct^.ItemCount;
       ResizeStructure(FM3Struct^,length(s)+1);
       StrPCopy(FM3Struct^.Data,s);
-      if (Length(FM3Struct^.RefFrom) > 0) and (FM3Struct^.ItemCount <> l) and
-         (MessageDlg(
-           'References update',
-           'References to this tag should be updated with new size of this tag.'#13+
-           'This can be done automatically, but this feature is experimental.'#13+
-           'Update references?',
-           mtConfirmation,
-           mbYesNo,
-           0
-         ) = mrYes)
-      then
+      if (Length(FM3Struct^.RefFrom) > 0) and (FM3Struct^.ItemCount <> l) then
       begin
         for i := 0 to length(FM3Struct^.RefFrom)-1 do
         with FM3Struct^.RefFrom[i] do

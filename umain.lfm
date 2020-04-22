@@ -93,9 +93,8 @@ object FMain: TFMain
         Top = 24
         Width = 579
         Caption = 'Ask confirmation to automatically update references'' entries number on CHAR tag edit in Tree View Editor'
-        Checked = True
+        Enabled = False
         OnChange = cbAskOnCharAutoUpdateChange
-        State = cbChecked
         TabOrder = 1
       end
       object cbRememberStructFile: TCheckBox
