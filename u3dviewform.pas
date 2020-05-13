@@ -22,7 +22,7 @@ unit u3DViewForm;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, uM3File, ustructures;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, uM3File, ustructures, dglOpenGL;
 
 type
 
@@ -33,14 +33,35 @@ type
     PanelRight: TPanel;
     PanelLeft: TPanel;
     PanelBottom: TPanel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FM3File: TM3File;
     FVertexFlags: UInt32;
     FVertexArray: array of TM3VertexInfoFull;
+    FvertexCount: Integer;
+
+    FFacesData: Pointer;
+    FFacesCount: Integer;
+
+    FRegionsTag: PM3Structure;
+    FObjectsTag: PM3Structure;
+
+    FRenderIdx: Integer;
+
+    FGLVertexArray: GLuint;
+    FGLVertexBuffer: GLuint;
+    FGLFacesBuffer: GLuint;
 
     procedure ReadVertexArray(vData: Pointer; DataSize: Integer);
+
+    procedure GLWndInit;
+    procedure FillArrays;
   public
     procedure ShowEditor(const M3: TM3File);
+
+    procedure FrameStart;
+    procedure FrameRender;
   end;
 
 var
@@ -49,7 +70,7 @@ var
 implementation
 
 uses
-  uCommon;
+  uCommon, umain, RenderUtils, RenderWnd;
 
 const
   vertexSizeMin =
@@ -69,6 +90,16 @@ const
 {$R *.lfm}
 
 { TF3dView }
+
+procedure TF3dView.FormCreate(Sender: TObject);
+begin
+  CreateRenderWindow(Panel3D.Handle,0,@GLWndInit);
+end;
+
+procedure TF3dView.FormDestroy(Sender: TObject);
+begin
+  FMain.Free3DEditMode;
+end;
 
 procedure TF3dView.ReadVertexArray(vData: Pointer; DataSize: Integer);
 var
@@ -144,20 +175,51 @@ begin
   end;
 end;
 
+procedure TF3dView.GLWndInit;
+begin
+  glGenVertexArrays(1,@FGLVertexArray);
+  glGenBuffers(1,@FGLVertexBuffer);
+  glGenBuffers(1,@FGLFacesBuffer);
+end;
+
+procedure TF3dView.FillArrays;
+begin
+  glBindVertexArray(FGLVertexArray);
+  glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(TM3VertexInfoFull)*length(FVertexArray), @FVertexArray[0], GL_STATIC_DRAW);
+end;
+
 procedure TF3dView.ShowEditor(const M3: TM3File);
 var
-  pTag: PM3Structure;
+  pModl, pTag: PM3Structure;
 begin
   FM3File := M3;
 
-  pTag := M3.GetModelTag;
-  if pTag = nil then exit;
-  if not ReadFieldData(pTag^,'vFlags',0,FVertexFlags,4) then Exit;
+  pModl := M3.GetModelTag;
+  if pModl = nil then exit;
+  if not ReadFieldData(pModl^,'vFlags',0,FVertexFlags,4) then Exit;
+
   pTag := M3.GetVerticesTag;
   if pTag = nil then exit;
   ReadVertexArray(pTag^.Data, pTag^.DataSize);
 
+  pTag := FM3File.FollowRefField(pModl^,0,'divisions');
+  if pTag = nil then exit;
+  FRegionsTag := FM3File.FollowRefField(pTag^,0,'regions');
+  FObjectsTag := FM3File.FollowRefField(pTag^,0,'objects');
+
+
   Show;
+end;
+
+procedure TF3dView.FrameStart;
+begin
+
+end;
+
+procedure TF3dView.FrameRender;
+begin
+  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
 end;
 
 end.

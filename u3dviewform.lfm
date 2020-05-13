@@ -6,6 +6,8 @@ object F3dView: TF3dView
   Caption = 'M3 Model - 3D View'
   ClientHeight = 637
   ClientWidth = 812
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '2.0.0.4'
   object PanelBottom: TPanel
     Left = 0
