@@ -3,11 +3,11 @@ Program to directly edit M3 models
 
 ## Tree View Editor
 * Selecting tag on the left side will display fields of 1st element of that tag in the table.
-  * To edit a field doubleclick on value column of the field you want to edit.
+  * To edit a field doubleclick on field row you want to edit.
   * If selected tag has more than one item, to change index of item to edit use `<<` and `>>` buttons.
   * If selected tag item has references to other tags in it's fields, these tags will be displayed as sub-nodes of selected tag.
   * If selected tag is referenced from other tags, those references will be displayed at the bottom of values table.
-    * Doubleclicking on value of "Referenced from" field will select a tag in tag tree and item index that references current tag.
+    * Doubleclicking on "Referenced from" row will select a tag in tag tree and item index that references current tag.
 * Tag at index 0 (`MD33` or `MD34`) is special as it's fields values describe **.m3** file offsets.
   * Any changes will be rewriten when file is saved.
 
@@ -16,6 +16,13 @@ Program to directly edit M3 models
 * Text can be copied to any text editor and then copied back to apply changes on tags.
 * Lines that don't need to be changed can be deleted.
 * Number at the start of the line and colon is an index of CHAR tag and must be preserved for changed lines.
+
+## Texture rename tool
+* Call it from menu: Model - Rename textures.
+* Allows to rename textures in a more user-friendly way.
+* Also allows to change `colorChannelSetting` of a LAYR tag(s), that use this texture path.
+* If there is more than one LAYR tag referencing same texture path with different `colorChannelSetting` it will be shown as `Various`.
+  * Selecting `Various` in `colorChannelSetting` edit means no changes will be made. Any other value will overwrite `colorChannelSetting` for all LAYR tags that use this texture.
 
 ## M3ML Export
 * It is an xml file, that preserves tags structure.

@@ -103,7 +103,7 @@ type
     alpha: Byte;
   end;
 
-  TM3VertexInfoFull = record
+  TM3VertexInfoFull = packed record
     position: m3VEC3;
     boneWeight0: UInt8;
     boneWeight1: UInt8;

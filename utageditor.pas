@@ -236,7 +236,9 @@ procedure TFTagEditor.TableViewDblClick(Sender: TObject);
 var
   idx: integer;
 begin
+  {
   if TableView.Col <> COL_Value then Exit;
+  }
   if (FM3Struct^.StructName = 'CHAR') and (FM3Struct^.SpecialType <> sstCharBinary) and (TableView.Row = 1) then
   begin
     EditCHAR;

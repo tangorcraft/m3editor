@@ -32,7 +32,7 @@ object FTagEditor: TFTagEditor
       Cursor = crVSplit
       Left = 0
       Height = 5
-      Top = 90
+      Top = 137
       Width = 710
       Align = alTop
       AutoSnap = False
@@ -42,7 +42,7 @@ object FTagEditor: TFTagEditor
     object PanelNavi: TPanel
       Left = 0
       Height = 26
-      Top = 95
+      Top = 142
       Width = 710
       Align = alTop
       BevelOuter = bvLowered
@@ -413,8 +413,8 @@ object FTagEditor: TFTagEditor
     end
     object TableView: TStringGrid
       Left = 0
-      Height = 583
-      Top = 121
+      Height = 536
+      Top = 168
       Width = 710
       Align = alClient
       AutoEdit = False
@@ -462,7 +462,7 @@ object FTagEditor: TFTagEditor
     end
     object MemoDesc: TMemo
       Left = 0
-      Height = 90
+      Height = 137
       Top = 0
       Width = 710
       Align = alTop
