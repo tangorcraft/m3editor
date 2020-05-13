@@ -55,6 +55,8 @@ type
 
     function FollowRefField(Tag: TM3Structure; const ItemIndex: Integer; const FieldName: string): PM3Structure;
 
+    procedure EditCHARTag(var Tag: TM3Structure; const NewVal: String);
+
     // specific model data functions
     function GetModelTag: PM3Structure;
     function GetVerticesTag: PM3Structure;
@@ -571,6 +573,27 @@ begin
         end;
         Exit;
       end;
+end;
+
+procedure TM3File.EditCHARTag(var Tag: TM3Structure; const NewVal: String);
+var
+  i, l: Integer;
+  p: Pointer;
+begin
+  if (Tag.Tag <> CHARTag) or (Tag.SpecialType = sstCharBinary) then Exit;
+
+  l := Tag.ItemCount;
+  ResizeStructure(Tag,length(NewVal)+1);
+  StrPCopy(Tag.Data,NewVal);
+  if (Length(Tag.RefFrom) > 0) and (Tag.ItemCount <> l) then
+  begin
+    for i := 0 to length(Tag.RefFrom)-1 do
+    with Tag.RefFrom[i] do
+    begin
+      p := FTags[rfTagIndex].Data + rfRefFieldOffset;
+      Pm3ref_small(p)^.refCount := Tag.ItemCount;
+    end;
+  end;
 end;
 
 function TM3File.GetModelTag: PM3Structure;

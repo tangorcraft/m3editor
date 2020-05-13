@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls,
   ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles, uCHARBulkEdit,
-  uM3ML;
+  uM3ML, u3DViewForm, uToolTextureRename;
 
 type
 
@@ -45,6 +45,9 @@ type
     MDebugAction: TMenuItem;
     MDebug1: TMenuItem;
     MAbout: TMenuItem;
+    MTextureTool: TMenuItem;
+    MToolBatchScan: TMenuItem;
+    MTools: TMenuItem;
     MScanRefCHAR: TMenuItem;
     MScanRefAll: TMenuItem;
     MScanRef: TMenuItem;
@@ -68,6 +71,7 @@ type
     PanelMain: TPanel;
     SaveDialog: TSaveDialog;
     SaveM3MLDialog: TSaveDialog;
+    procedure BMeshEditorClick(Sender: TObject);
     procedure btnBulkEditCHARClick(Sender: TObject);
     procedure btnTreeViewEditorClick(Sender: TObject);
     procedure cbAskOnCharAutoUpdateChange(Sender: TObject);
@@ -87,6 +91,7 @@ type
     procedure MScanRefCHARClick(Sender: TObject);
     procedure MStructOpenClick(Sender: TObject);
     procedure MStructReloadClick(Sender: TObject);
+    procedure MTextureToolClick(Sender: TObject);
   private
     FAppPath: string;
 
@@ -98,16 +103,22 @@ type
     FM3File: TM3File;
     FModified: Boolean;
     FTagEditor: TFTagEditor;
+    F3DViewEditMode: TF3dView;
 
     procedure UpdateLabels;
     procedure StructuresUpdate;
 
     procedure TryOpenFile(const FileName: string);
+
+    procedure InitGL(var rActive: Boolean);
+    procedure FrameStartGL(var rActive: Boolean);
+    procedure RenderGL(var rActive: Boolean);
   public
     procedure Log(const S: string);
     procedure Log(const Fmt : string; const Args : Array of const);
 
     procedure FreeTagEditor;
+    procedure Free3DEditMode;
     procedure ModelChanged(const Changer: TForm);
   end;
 
@@ -118,7 +129,7 @@ var
 implementation
 
 uses
-  uCommon, uAbout;
+  uCommon, uAbout, RenderWnd, RenderUtils, dglOpenGL;
 
 {$R *.lfm}
 
@@ -173,6 +184,12 @@ begin
     Log('Updating "%s"',[FInternalsFileName]);
     Structures.SaveInternals(FInternalsFileName);
   end;
+
+  // Render Init
+  SetRenderEventProc(@InitGL,RENDER_EVENT_INIT_GL);
+  SetRenderEventProc(@FrameStartGL,RENDER_EVENT_FRAME_START_GL);
+  SetRenderEventProc(@RenderGL,RENDER_EVENT_BEGIN_GL);
+  SetRenderWindowsListCount(1);
 end;
 
 procedure TFMain.btnTreeViewEditorClick(Sender: TObject);
@@ -197,6 +214,21 @@ begin
     ShowEditor(FM3File);
   finally
     Free;
+  end;
+end;
+
+procedure TFMain.BMeshEditorClick(Sender: TObject);
+begin
+  if F3DViewEditMode = nil then
+  begin
+    Application.CreateForm(TF3dView,F3DViewEditMode);
+    F3DViewEditMode.ShowEditor(FM3File);
+    BMeshEditor.Enabled := false;
+  end
+  else
+  begin
+    F3DViewEditMode.Free;
+    F3DViewEditMode := nil;
   end;
 end;
 
@@ -243,6 +275,7 @@ begin
   {$IFOPT D-}
   BMeshEditor.Visible := false;
   MDebugAction.Visible := false;
+  MTools.Visible := False;
   {$ENDIF}
 end;
 
@@ -257,8 +290,14 @@ begin
 end;
 
 procedure TFMain.MDebugActionClick(Sender: TObject);
+var
+  i: UInt32;
+  b: UInt8;
 begin
-
+  i := $800;
+  b := $80;
+  move(b,i,1);
+  ShowMessage(IntToHex(i,8));
 end;
 
 procedure TFMain.MFileOpenClick(Sender: TObject);
@@ -364,6 +403,16 @@ begin
   end;
 end;
 
+procedure TFMain.MTextureToolClick(Sender: TObject);
+begin
+  with TFTextureRename.Create(Self) do
+  try
+    ShowEditor(FM3File);
+  finally
+    Free;
+  end;
+end;
+
 procedure TFMain.UpdateLabels;
 begin
   lblStruct.Caption := Format('Structures File: "%s"',[FStructFileName]);
@@ -400,6 +449,23 @@ begin
   UpdateLabels;
 end;
 
+procedure TFMain.InitGL(var rActive: Boolean);
+begin
+  rActive := InitOpenGL;
+end;
+
+procedure TFMain.FrameStartGL(var rActive: Boolean);
+begin
+  if Assigned(F3DViewEditMode) then F3DViewEditMode.FrameStart;
+end;
+
+procedure TFMain.RenderGL(var rActive: Boolean);
+begin
+  case GetCurrentRenderWindowIndex of
+    0: if Assigned(F3DViewEditMode) then F3DViewEditMode.FrameRender;
+  end;
+end;
+
 procedure TFMain.Log(const S: string);
 begin
   if MemoLog.Lines.Count >= 10000 then
@@ -419,6 +485,13 @@ begin
   if FTagEditor <> nil then
     FTagEditor := nil;
   btnTreeViewEditor.Enabled := true;
+end;
+
+procedure TFMain.Free3DEditMode;
+begin
+  if F3DViewEditMode <> nil then
+    F3DViewEditMode := nil;
+  BMeshEditor.Enabled := true;
 end;
 
 procedure TFMain.ModelChanged(const Changer: TForm);

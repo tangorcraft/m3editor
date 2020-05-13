@@ -64,6 +64,7 @@ object FMain: TFMain
       Top = 64
       Width = 155
       Caption = 'Mesh Editor (WIP)'
+      OnClick = BMeshEditorClick
       TabOrder = 2
     end
     object gbOptions: TGroupBox
@@ -177,12 +178,22 @@ object FMain: TFMain
           OnClick = MScanRefCHARClick
         end
       end
+      object MTextureTool: TMenuItem
+        Caption = 'Rename textures ...'
+        OnClick = MTextureToolClick
+      end
       object N2: TMenuItem
         Caption = '-'
       end
       object MExport: TMenuItem
         Caption = 'Export'
         Enabled = False
+      end
+    end
+    object MTools: TMenuItem
+      Caption = 'Tools'
+      object MToolBatchScan: TMenuItem
+        Caption = 'Scan, check and repair m3 files ...'
       end
     end
     object MAbout: TMenuItem

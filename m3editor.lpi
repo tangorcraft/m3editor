@@ -20,6 +20,7 @@
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="utils;render;tools"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -58,6 +59,7 @@
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="utils;render;tools"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)-release"/>
           </SearchPaths>
           <Parsing>
@@ -90,6 +92,7 @@
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="utils;render;tools"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -119,6 +122,7 @@
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="utils;render;tools"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -159,6 +163,7 @@
           <PathDelim Value="\"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="utils;render;tools"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)-relesae"/>
           </SearchPaths>
           <CodeGeneration>
@@ -196,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="19">
+    <Units Count="29">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -331,6 +336,55 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="u3DViewForm"/>
       </Unit18>
+      <Unit19>
+        <Filename Value="utils\CountersUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="utils\InterLockedSyncUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="render\dglOpenGL.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="render\glMathUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="render\glmCameraUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="render\RenderUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="render\RenderWnd.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="render\renderex.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RenderEx"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="tools\utoolbatchscan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FBatchScan"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="uToolBatchScan"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="tools\utooltexturerename.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FTextureRename"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="uToolTextureRename"/>
+      </Unit28>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -338,6 +392,7 @@
     <PathDelim Value="\"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="utils;render;tools"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

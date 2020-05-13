@@ -1,0 +1,8 @@
+object FBatchScan: TFBatchScan
+  Left = 345
+  Height = 461
+  Top = 145
+  Width = 739
+  Caption = 'External m3 file scan, check and repair'
+  LCLVersion = '2.0.0.4'
+end

@@ -28,6 +28,7 @@ const
   headerTag33 = $4D443333;
   headerTag34 = $4D443334;
   CHARTag     = $43484152;
+  LAYRTag     = $4C415952;
 
 var
   FloatDotFormat: TFormatSettings;

@@ -15,29 +15,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 *)
-program m3editor;
+unit uToolBatchScan;
 
 {$mode objfpc}{$H+}
 
+interface
+
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
-  Interfaces, // this includes the LCL widgetset
-  Forms, umain, ustructures, uTagEditor, uM3File, uEditString, uEditInteger,
-  uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit, uM3ML, uCommon,
-  uRefEdit, uNewTag, uColorEditor, uAbout, u3DViewForm, dglOpenGL, glMathUtils,
-  glmCameraUtils, RenderUtils, RenderWnd, CountersUtils, InterLockedSyncUtils,
-  RenderEx, uToolBatchScan, uToolTextureRename;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs;
 
-{$R *.res}
+type
+  TFBatchScan = class(TForm)
+  private
 
-begin
-  RequireDerivedFormResource:=True;
-  Application.Scaled:=True;
-  Application.Initialize;
-  Application.MainFormOnTaskBar := True;
-  Application.CreateForm(TFMain, FMain);
-  Application.Run;
+  public
+
+  end;
+
+var
+  FBatchScan: TFBatchScan;
+
+implementation
+
+{$R *.lfm}
+
 end.
 

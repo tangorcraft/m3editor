@@ -1,0 +1,143 @@
+object FTextureRename: TFTextureRename
+  Left = 331
+  Height = 562
+  Top = 125
+  Width = 705
+  Caption = 'Texture path change'
+  ClientHeight = 562
+  ClientWidth = 705
+  LCLVersion = '2.0.0.4'
+  object gridTextures: TStringGrid
+    Left = 0
+    Height = 422
+    Top = 0
+    Width = 705
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoEdit = False
+    AutoFillColumns = True
+    ColCount = 2
+    FixedCols = 0
+    MouseWheelOption = mwGrid
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll, goTruncCellHints, goRowHighlight]
+    ParentShowHint = False
+    RowCount = 2
+    ScrollBars = ssVertical
+    ShowHint = True
+    TabAdvance = aaDown
+    TabOrder = 0
+    OnClick = gridTexturesClick
+    ColWidths = (
+      342
+      342
+    )
+    Cells = (
+      2
+      0
+      0
+      'Old texture path'
+      1
+      0
+      'New texture path'
+    )
+  end
+  object EditTexture: TEdit
+    Left = 6
+    Height = 23
+    Top = 444
+    Width = 604
+    Anchors = [akLeft, akRight, akBottom]
+    OnChange = EditTextureChange
+    TabOrder = 1
+  end
+  object Label1: TLabel
+    Left = 6
+    Height = 15
+    Top = 425
+    Width = 89
+    Anchors = [akLeft, akBottom]
+    Caption = 'Edit texture path:'
+    ParentColor = False
+  end
+  object BResetPath: TButton
+    Left = 621
+    Height = 25
+    Top = 442
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Reset'
+    OnClick = BResetPathClick
+    TabOrder = 2
+  end
+  object BSave: TButton
+    Left = 6
+    Height = 25
+    Top = 528
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Rename'
+    Font.Style = [fsBold]
+    ModalResult = 1
+    ParentFont = False
+    TabOrder = 5
+  end
+  object BCancel: TButton
+    Left = 93
+    Height = 25
+    Top = 528
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 6
+  end
+  object BResetAll: TButton
+    Left = 178
+    Height = 25
+    Top = 528
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Reset All'
+    OnClick = BResetAllClick
+    TabOrder = 7
+  end
+  object Label2: TLabel
+    Left = 6
+    Height = 15
+    Top = 474
+    Width = 201
+    Anchors = [akLeft, akBottom]
+    Caption = 'Edit texture layer colorChannelSetting:'
+    ParentColor = False
+  end
+  object cbChannel: TComboBox
+    Left = 6
+    Height = 23
+    Top = 495
+    Width = 604
+    Anchors = [akLeft, akRight, akBottom]
+    ItemHeight = 15
+    Items.Strings = (
+      'RGB'
+      'RGBA'
+      'Alpha Only'
+      'Red Only'
+      'Green Only'
+      'Blue Only'
+      'Various'
+    )
+    OnChange = cbChannelChange
+    Style = csDropDownList
+    TabOrder = 3
+  end
+  object BResetChannel: TButton
+    Left = 621
+    Height = 25
+    Top = 493
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Reset'
+    OnClick = BResetChannelClick
+    TabOrder = 4
+  end
+end
