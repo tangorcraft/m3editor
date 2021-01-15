@@ -25,13 +25,68 @@ uses
   Classes, SysUtils, dglOpenGL;
 
 function LoadShader(const FileName: string; const ShaderType: GLuint; out Shader: GLuint): boolean;
+function LoadPorgram(const VertexShader, FragmentShader: string; out ShaderProgram: GLuint): boolean;
 
 implementation
 
 function LoadShader(const FileName: string; const ShaderType: GLuint;
   out Shader: GLuint): boolean;
+var
+  s: string;
+  i: GLint;
 begin
+  Result := false;
+  if not FileExists(FileName) then exit;
+  with TStringList.Create do
+  try
+    LoadFromFile(FileName);
+    s := Text;
+  finally
+    Free;
+  end;
+  if Trim(s)='' then exit;
 
+  Shader := glCreateShader(ShaderType);
+  i := length(s);
+  glShaderSource(Shader,1,@s[1],@i);
+  glCompileShader(Shader);
+
+  glGetShaderiv(Shader,GL_COMPILE_STATUS,@i);
+  Result := (i = GLint(GL_TRUE));
+  if not Result then
+  begin
+    glDeleteShader(Shader);
+    Shader := 0;
+  end;
+end;
+
+function LoadPorgram(const VertexShader, FragmentShader: string; out
+  ShaderProgram: GLuint): boolean;
+var
+  vert, frag: GLuint;
+  i: GLint;
+begin
+  Result := false;
+  if LoadShader(VertexShader,GL_VERTEX_SHADER,vert) and LoadShader(FragmentShader,GL_FRAGMENT_SHADER,frag) then
+  begin
+    ShaderProgram := glCreateProgram();
+    glAttachShader(ShaderProgram,vert);
+    glAttachShader(ShaderProgram,frag);
+    glLinkProgram(ShaderProgram);
+
+    glGetProgramiv(ShaderProgram,GL_LINK_STATUS,@i);
+    Result := (i = GLint(GL_TRUE));
+
+    glDetachShader(ShaderProgram,vert);
+    glDetachShader(ShaderProgram,frag);
+    glDeleteShader(vert);
+    glDeleteShader(frag);
+    if not Result then
+    begin
+      glDeleteProgram(ShaderProgram);
+      ShaderProgram := 0;
+    end
+  end;
 end;
 
 end.
