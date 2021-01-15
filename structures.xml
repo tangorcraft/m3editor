@@ -1761,7 +1761,7 @@
            <field name="unknown713b7b48" type="float" default-value="150.0" />
            <field name="unknown389805a1" size="12" default-value="0x000000000000000000000000"/>
            <field name="unknown1e6f06e7" type="float" default-value="1.0" />
-           <field name="unknown402f350d" type="uint32" default-value="0x80ffffff" />
+           <field name="unknownColor" type="COL" default-value="0x80ffffff" />
            <field name="unknown42724138" size="12" default-value="0x000000000000000000000000" />
         </fields>
     </structure>
