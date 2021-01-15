@@ -1454,7 +1454,17 @@
             <field name="unknown3b61017a" type="uint32" default-value="0" />
             <field name="noiseAmp" type="float" default-value="0.8" since-version="24" />
             <field name="noiseFreq" type="float" default-value="0.5" since-version="24" />
-            <field name="rttChannel" type="int32" default-value="-1" />
+            <field name="rttChannel" type="int32" default-value="-1">
+			<hint>Render To Texture Channel
+				"-1", "None", "None"
+				"0", "Layer 1", "Render To Texture Layer 1"
+				"1", "Layer 2", "Render To Texture Layer 2"
+				"2", "Layer 3", "Render To Texture Layer 3"
+				"3", "Layer 4", "Render To Texture Layer 4"
+				"4", "Layer 5", "Render To Texture Layer 5"
+				"5", "Layer 6", "Render To Texture Layer 6"
+				"6", "Layer 7", "Render To Texture Layer 7"</hint>
+			</field>
             <field name="videoFrameRate" type="uint32" default="0" hint="if video is enabled default should be 24"/>
             <field name="videoStartFrame" type="uint32" default="0" />
             <field name="videoEndFrame" type="int32" default-value="0" hint="-1 means till the end"/>
@@ -1474,7 +1484,7 @@
             <field name="triPlanarOffset" type="Vector3AnimationReferenceV0" since-version="24"/>
             <field name="triPlanarScale" type="Vector3AnimationReferenceV0" since-version="24" hint="default (1.0, 1.0, 1.0)"/>
             <field name="unknownbd3f7b5d" type="int32" default-value="-1" />
-            <field name="fresnelType" type="uint32" default-value="0" />               
+            <field name="fresnelType" type="uint32" default-value="0" hint="0: disabled, 1:enabled, 2:enabled (inverted)"/>
             <field name="fresnelExponent" type="float" default-value="4.0" />
             <field name="fresnelMin" type="float" default-value="0.0" />
             <field name="fresnelMaxOffset" type="float" default-value="1.0" hint="fresnelMin + fresnelMaxOffset = fresnelMax"/>
@@ -1559,7 +1569,16 @@
                     geometryVisible was added between version 15 and 18 propably. => Should be 0 in 15
 				</hint>
             </field>
-            <field name="blendMode" type="uint32" />
+            <field name="blendMode" type="uint32">
+				<hint>
+			0 "Opaque"
+			1 'Alpha Blend'
+			2 'Add'
+			3 'Alpha Add'
+			4 'Mod'
+			5 'Mod 2x'
+				</hint>
+            </field>
             <field name="priority" type="int32" />
             <field name="usedRTTChannels" type="uint32" default-value="0" >
                  <bits>
@@ -1598,10 +1617,28 @@
             <field name="unknownLayer3" type="Reference" refTo="LAYR" since-version="19" />
             <field name="unknownLayer4" type="Reference" refTo="LAYR" since-version="19" />
             <field name="unknown3" type="uint32" default-value="0"/>
-            <field name="layerBlendType" type="uint32" />
-            <field name="emisBlendType" type="uint32" />
+            <field name="layerBlendType" type="uint32">
+				<hint>
+				0 "Mod"
+				1 'Mod 2x'
+				2 'Add'
+				3 'Blend'
+				4 'Team Color Emissive Add'
+				5 'Team Color Diffuse Add'
+				</hint>
+            </field>
+            <field name="emisBlendType" type="uint32">
+				<hint>
+				0 "Mod"
+				1 'Mod 2x'
+				2 'Add'
+				3 'Blend'
+				4 'Team Color Emissive Add'
+				5 'Team Color Diffuse Add'
+				</hint>
+            </field>
             <field name="emisMode" type="uint32" default-value="2" />
-            <field name="specType" type="uint32" />
+            <field name="specType" type="uint32" hint="0: RGB, 1:Alpha Only"/>
             <field name="unknownAnimationRef1" type="FloatAnimationReference" />
             <field name="unknownAnimationRef2" type="UInt32AnimationReference" />
             <field name="unknown2410d9f0" size="12" since-version="19" expected-value="0x000000000000000000000000" />
@@ -1782,27 +1819,27 @@
             <field name="unknown42724139" size="12" expacted-value="0x000000000000000000000000" since-version="3" />
             <field name="unknown191c7146" type="Reference" refTo="CHAR" since-version="3" />
             <field name="unknowne5cb3d48" type="uint32" default-value="1" since-version="3" />
-            <field name="unknown62cd83e0" size="4" since-version="3" />
-            <field name="unknown7f492c0a" type="uint32" defualt-value="0x40000000" />
+            <field name="unknown62cd83e0" type="uint32" since-version="3" />
+            <field name="unknown7f492c0a" type="float" defualt-value="0x40000000" />
             <!-- version 2 may have more fields with version 3 in common -->
             <field name="unknown7c0501fd" size="28" till-version="2" />
-            <field name="unknown592478e1" size="4" default-value="0x00000000" since-version="3"/>
-            <field name="unknownd3786e1e" size="4" since-version="3" />
-            <field name="unknown8beb57a7" size="4" default-value="0x00000000" since-version="3" />
-            <field name="unknown9b624fc7" size="4" since-version="3" />
-            <field name="unknownbaed442e" size="4" default-value="0xffffffff" since-version="3" />
-            <field name="unknown7a47ad22" size="4" default-value="0xffffffff" since-version="3" />
-            <field name="unknown8b614731" size="4" since-version="3" />
-            <field name="unknown1d8f2887" size="4" default-value="0x00000000" since-version="3" />
-            <field name="unknown43f3ad4d" size="4" since-version="3" />
+            <field name="unknown592478e1" type="float" default-value="0x00000000" since-version="3"/>
+            <field name="unknownd3786e1e" type="uint32" since-version="3" />
+            <field name="unknown8beb57a7" type="uint32" default-value="0x00000000" since-version="3" />
+            <field name="unknown9b624fc7" type="uint32" since-version="3" />
+            <field name="unknownbaed442e" type="float" default-value="0xffffffff" since-version="3" />
+            <field name="unknown7a47ad22" type="float" default-value="0xffffffff" since-version="3" />
+            <field name="unknown8b614731" type="uint32" since-version="3" />
+            <field name="unknown1d8f2887" type="uint32" default-value="0x00000000" since-version="3" />
+            <field name="unknown43f3ad4d" type="uint32" since-version="3" />
             <field name="unknownedeec90d" type="float" default-value="1.0"  since-version="3" />
             <field name="unknown374c15de" type="float" default-value="1.0" since-version="3" />
-            <field name="unknown5f5e0f87" size="4" since-version="3" />
-            <field name="unknownf6e1c072" size="4" since-version="3" default-value="0x00000000" />
-            <field name="unknown41cff88a" size="4" since-version="3" />
+            <field name="unknown5f5e0f87" type="uint32" since-version="3" />
+            <field name="unknownf6e1c072" type="uint32" since-version="3" default-value="0x00000000" />
+            <field name="unknown41cff88a" type="uint32" since-version="3" />
             <field name="unknown1c5b9dc4" type="float" default-value="1.0" since-version="3" />
             <field name="unknown57c02c2b" type="float" default-value="1.0" since-version="3" />
-            <field name="unknown294d3393" size="4" since-version="3" />
+            <field name="unknown294d3393" type="uint32" since-version="3" />
         </fields>
     </structure>
     
