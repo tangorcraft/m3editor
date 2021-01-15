@@ -83,8 +83,11 @@ type
 
     procedure CalcRGB;
     procedure CalcHSL;
+
+    function MakeCOL(const alpha: Byte): m3Color;
   public
-    function ShowEditor(const VEC: Pm3VEC3_color): boolean;
+    function ShowEditorVEC3(const VEC: Pm3VEC3_color): boolean;
+    function ShowEditorCOL(const COL: Pm3Color): boolean;
   end;
 
 var
@@ -341,7 +344,15 @@ begin
   DisplayHSL;
 end;
 
-function TFEditColor.ShowEditor(const VEC: Pm3VEC3_color): boolean;
+function TFEditColor.MakeCOL(const alpha: Byte): m3Color;
+begin
+  Result.blue := round(FCurVec.B * 255);
+  Result.green := round(FCurVec.G * 255);
+  Result.red := round(FCurVec.R * 255);
+  Result.alpha := alpha;
+end;
+
+function TFEditColor.ShowEditorVEC3(const VEC: Pm3VEC3_color): boolean;
 begin
   FInitVec := VEC^;
   BResetClick(nil);
@@ -350,6 +361,20 @@ begin
   if Result then
   begin
     VEC^ := FCurVec;
+  end;
+end;
+
+function TFEditColor.ShowEditorCOL(const COL: Pm3Color): boolean;
+begin
+  FInitVec.R := COL^.red / 255.0;
+  FInitVec.G := COL^.green / 255.0;
+  FInitVec.B := COL^.blue / 255.0;
+  BResetClick(nil);
+
+  Result := (ShowModal = mrOK);
+  if Result then
+  begin
+    COL^ := MakeCOL(COL^.alpha);
   end;
 end;
 

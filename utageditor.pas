@@ -98,6 +98,7 @@ type
     procedure EditFlagField(const F: TM3Field);
     procedure EditRefField(const F: TM3Field);
     procedure EditVEC3asColor(const F: TM3Field);
+    procedure EditCOLasColor(const F: TM3Field);
   public
     procedure ShowEditor(const M3File: TM3File);
     procedure ResetTagTree;
@@ -280,6 +281,8 @@ begin
       begin
         if Copy(fTypeName,1,4) = 'VEC3' then
           EditVEC3asColor(FM3Struct^.ItemFields[idx])
+        else if Copy(fTypeName,1,3) = 'COL' then
+          EditCOLasColor(FM3Struct^.ItemFields[idx])
         else
           ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
       end;
@@ -759,7 +762,21 @@ procedure TFTagEditor.EditVEC3asColor(const F: TM3Field);
 begin
   with TFEditColor.Create(Self) do
   try
-    if ShowEditor(F.fData) then
+    if ShowEditorVEC3(F.fData) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateItemTable;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFTagEditor.EditCOLasColor(const F: TM3Field);
+begin
+  with TFEditColor.Create(Self) do
+  try
+    if ShowEditorCOL(F.fData) then
     begin
       FMain.ModelChanged(Self);
       UpdateItemTable;

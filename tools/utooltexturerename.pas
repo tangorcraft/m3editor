@@ -299,6 +299,10 @@ begin
         ProcessEditTag(m3,m3[i]^);
     FMain.ModelChanged(nil);
   end;
+  SetLength(FOldNames,0);
+  SetLength(FNewNames,0);
+  SetLength(FOldChannel,0);
+  SetLength(FNewChannel,0);
 end;
 
 end.
