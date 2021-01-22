@@ -91,6 +91,8 @@ type
 
   end;
 
+  { TglmFoVTargetCamera }
+
   TglmFoVTargetCamera = class (TglmCustomTragetCamera)
   private
     FFov: GLfloat;
@@ -121,6 +123,9 @@ type
     procedure TransTarget(const XOffset, YOffset, ZOffset: GLfloat);
     procedure TransEye(const XOffset, YOffset, ZOffset: GLfloat);
     procedure TransCamera(const XOffset, YOffset, ZOffset: GLfloat);
+
+    procedure RotateEye(const SideAngleRad, UpAngleRad: GLfloat);
+    procedure TurnEye(const SideAngleRad, UpAngleRad: GLfloat);
 
     property FieldOfVision: GLfloat read FFov write SetFieldOfVision;
   end;
@@ -501,6 +506,102 @@ begin
   end;
   CalcDistance;
   RecalcNormals;
+end;
+
+procedure TglmFoVTargetCamera.RotateEye(const SideAngleRad, UpAngleRad: GLfloat);
+var
+  M: TglmMatrixf4;
+  angle: GLfloat;
+  rVector, rAxis: TGLVectorf3;
+begin
+  rVector[0] := FSide[0]*SideAngleRad + FUp[0]*UpAngleRad;
+  rVector[1] := FSide[1]*SideAngleRad + FUp[1]*UpAngleRad;
+  rVector[2] := FSide[2]*SideAngleRad + FUp[2]*UpAngleRad;
+  glmComputeNormalOfPlane3fv(@rAxis[0],@FForw[0],@rVector[0]);
+  angle := sqrt(sqr(SideAngleRad)+sqr(UpAngleRad));
+
+  M[m4i0_0] := FSide[0];
+  M[m4i1_0] := FSide[1];
+  M[m4i2_0] := FSide[2];
+  M[m4i3_0] := 0;
+  M[m4i0_1] := FUp[0];
+  M[m4i1_1] := FUp[1];
+  M[m4i2_1] := FUp[2];
+  M[m4i3_1] := 0;
+  M[m4i0_2] := FForw[0];
+  M[m4i1_2] := FForw[1];
+  M[m4i2_2] := FForw[2];
+  M[m4i3_2] := 0;
+  M[m4i0_3] := FEye[0]-FTarget[0];
+  M[m4i1_3] := FEye[1]-FTarget[1];
+  M[m4i2_3] := FEye[2]-FTarget[2];
+  M[m4i3_3] := 1;
+
+  glmRotateRadf(M,angle,rAxis[0],rAxis[1],rAxis[2]);
+
+  FSide[0] := M[m4i0_0];
+  FSide[1] := M[m4i1_0];
+  FSide[2] := M[m4i2_0];
+
+  FUp[0] := M[m4i0_1];
+  FUp[1] := M[m4i1_1];
+  FUp[2] := M[m4i2_1];
+
+  FForw[0] := M[m4i0_2];
+  FForw[1] := M[m4i1_2];
+  FForw[2] := M[m4i2_2];
+
+  FEye[0] := M[m4i0_3]+FTarget[0];
+  FEye[1] := M[m4i1_3]+FTarget[1];
+  FEye[2] := M[m4i2_3]+FTarget[2];
+end;
+
+procedure TglmFoVTargetCamera.TurnEye(const SideAngleRad, UpAngleRad: GLfloat);
+var
+  M: TglmMatrixf4;
+  angle: GLfloat;
+  rVector, rAxis: TGLVectorf3;
+begin
+  rVector[0] := FSide[0]*SideAngleRad + FUp[0]*UpAngleRad;
+  rVector[1] := FSide[1]*SideAngleRad + FUp[1]*UpAngleRad;
+  rVector[2] := FSide[2]*SideAngleRad + FUp[2]*UpAngleRad;
+  glmComputeNormalOfPlane3fv(@rAxis[0],@FForw[0],@rVector[0]);
+  angle := sqrt(sqr(SideAngleRad)+sqr(UpAngleRad));
+
+  M[m4i0_0] := FSide[0];
+  M[m4i1_0] := FSide[1];
+  M[m4i2_0] := FSide[2];
+  M[m4i3_0] := 0;
+  M[m4i0_1] := FUp[0];
+  M[m4i1_1] := FUp[1];
+  M[m4i2_1] := FUp[2];
+  M[m4i3_1] := 0;
+  M[m4i0_2] := FForw[0];
+  M[m4i1_2] := FForw[1];
+  M[m4i2_2] := FForw[2];
+  M[m4i3_2] := 0;
+  M[m4i0_3] := FTarget[0]-FEye[0];
+  M[m4i1_3] := FTarget[1]-FEye[1];
+  M[m4i2_3] := FTarget[2]-FEye[2];
+  M[m4i3_3] := 1;
+
+  glmRotateRadf(M,-angle,rAxis[0],rAxis[1],rAxis[2]);
+
+  FSide[0] := M[m4i0_0];
+  FSide[1] := M[m4i1_0];
+  FSide[2] := M[m4i2_0];
+
+  FUp[0] := M[m4i0_1];
+  FUp[1] := M[m4i1_1];
+  FUp[2] := M[m4i2_1];
+
+  FForw[0] := M[m4i0_2];
+  FForw[1] := M[m4i1_2];
+  FForw[2] := M[m4i2_2];
+
+  FTarget[0] := M[m4i0_3]+FEye[0];
+  FTarget[1] := M[m4i1_3]+FEye[1];
+  FTarget[2] := M[m4i2_3]+FEye[2];
 end;
 
 end.
