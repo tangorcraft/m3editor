@@ -24,16 +24,23 @@ interface
 uses
   Classes, SysUtils, dglOpenGL;
 
-function LoadShader(const FileName: string; const ShaderType: GLuint; out Shader: GLuint): boolean;
-function LoadPorgram(const VertexShader, FragmentShader: string; out ShaderProgram: GLuint): boolean;
+function LoadShader(const FileName: string; const ShaderType: GLuint; out Shader: GLHandle): boolean;
+function LoadPorgram(const VertexShader, FragmentShader: string; out ShaderProgram: GLHandle): boolean;
+
+function GetLastShaderLog: string;
 
 implementation
 
+var
+  logStr: string;
+
 function LoadShader(const FileName: string; const ShaderType: GLuint;
-  out Shader: GLuint): boolean;
+  out Shader: GLHandle): boolean;
 var
   s: string;
+  ps: PChar;
   i: GLint;
+  pch: array[word] of char;
 begin
   Result := false;
   if not FileExists(FileName) then exit;
@@ -47,24 +54,35 @@ begin
   if Trim(s)='' then exit;
 
   Shader := glCreateShader(ShaderType);
+  s := s+#0;
   i := length(s);
-  glShaderSource(Shader,1,@s[1],@i);
+  ps := @s[1];
+  glShaderSource(Shader,1,@ps,@i);
   glCompileShader(Shader);
 
   glGetShaderiv(Shader,GL_COMPILE_STATUS,@i);
-  Result := (i = GLint(GL_TRUE));
+  Result := (i <> 0);
+  glGetShaderiv(Shader,GL_INFO_LOG_LENGTH,@i);
+  if i > 0 then
+  begin
+    glGetShaderInfoLog(Shader,$FFFE,@i,@pch[0]);
+    pch[i] := #0;
+    logStr := logStr + pch + #13;
+  end;
   if not Result then
   begin
+    logStr := logStr + 'Failed to make shader from "'+FileName+'"' + #13#10;
     glDeleteShader(Shader);
     Shader := 0;
   end;
 end;
 
 function LoadPorgram(const VertexShader, FragmentShader: string; out
-  ShaderProgram: GLuint): boolean;
+  ShaderProgram: GLHandle): boolean;
 var
-  vert, frag: GLuint;
+  vert, frag: GLHandle;
   i: GLint;
+  pch: array[word] of char;
 begin
   Result := false;
   if LoadShader(VertexShader,GL_VERTEX_SHADER,vert) and LoadShader(FragmentShader,GL_FRAGMENT_SHADER,frag) then
@@ -75,7 +93,14 @@ begin
     glLinkProgram(ShaderProgram);
 
     glGetProgramiv(ShaderProgram,GL_LINK_STATUS,@i);
-    Result := (i = GLint(GL_TRUE));
+    Result := (i <> 0);
+    glGetProgramiv(ShaderProgram,GL_INFO_LOG_LENGTH,@i);
+    if i > 0 then
+    begin
+      glGetProgramInfoLog(ShaderProgram,$FFFE,@i,@pch[0]);
+      pch[i] := #0;
+      logStr := logStr + pch + #13#10;
+    end;
 
     glDetachShader(ShaderProgram,vert);
     glDetachShader(ShaderProgram,frag);
@@ -83,10 +108,17 @@ begin
     glDeleteShader(frag);
     if not Result then
     begin
+      logStr := logStr + 'Failed to make program' + #13#10;
       glDeleteProgram(ShaderProgram);
       ShaderProgram := 0;
     end
   end;
+end;
+
+function GetLastShaderLog: string;
+begin
+  Result := logStr;
+  logStr := '';
 end;
 
 end.

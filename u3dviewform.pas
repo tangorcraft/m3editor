@@ -22,41 +22,55 @@ unit u3DViewForm;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, uM3File, ustructures, dglOpenGL;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
+  uM3File, ustructures, dglOpenGL, glMathUtils, glmCameraUtils;
 
 type
 
   { TF3dView }
 
   TF3dView = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
     Panel3D: TPanel;
     PanelRight: TPanel;
     PanelLeft: TPanel;
     PanelBottom: TPanel;
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
     FM3File: TM3File;
     FVertexFlags: UInt32;
     FVertexArray: array of TM3VertexInfoFull;
-    FvertexCount: Integer;
+    FVertexCount: Integer;
 
     FFacesData: Pointer;
     FFacesCount: Integer;
 
     FRegionsTag: PM3Structure;
     FObjectsTag: PM3Structure;
-
-    FRenderIdx: Integer;
+    FFacesTag: PM3Structure;
+    FBonesTag: PM3Structure;
 
     FGLVertexArray: GLuint;
     FGLVertexBuffer: GLuint;
     FGLFacesBuffer: GLuint;
 
+    FCamera: TglmFoVTargetCamera;
+    FCameraMatrix: TglmMatrixf4;
+
+    FGLProgram: GLHandle;
+    FUniformMVP: GLint;
+
     procedure ReadVertexArray(vData: Pointer; DataSize: Integer);
 
     procedure GLWndInit;
-    procedure FillArrays;
+    procedure GLWndFinal;
+    procedure ProcessModelData;
   public
     procedure ShowEditor(const M3: TM3File);
 
@@ -70,7 +84,7 @@ var
 implementation
 
 uses
-  uCommon, umain, RenderUtils, RenderWnd;
+  uCommon, umain, RenderUtils, RenderWnd, RenderEx;
 
 const
   vertexSizeMin =
@@ -93,12 +107,28 @@ const
 
 procedure TF3dView.FormCreate(Sender: TObject);
 begin
-  CreateRenderWindow(Panel3D.Handle,0,@GLWndInit);
+  FCamera := TglmFoVTargetCamera.Create(90,1,500);
+end;
+
+procedure TF3dView.Button1Click(Sender: TObject);
+begin
+  FCamera.MoveEye(0.5,0,0);
+end;
+
+procedure TF3dView.Button2Click(Sender: TObject);
+begin
+  FCamera.MoveEye(-0.5,0,0);
+end;
+
+procedure TF3dView.Button3Click(Sender: TObject);
+begin
+  FCamera.RotateEye(0.05,0);
 end;
 
 procedure TF3dView.FormDestroy(Sender: TObject);
 begin
   FMain.Free3DEditMode;
+  FCamera.Free;
 end;
 
 procedure TF3dView.ReadVertexArray(vData: Pointer; DataSize: Integer);
@@ -117,8 +147,8 @@ begin
   if hasUV2 then inc(vSize,4);
   hasUV3 := ((FVertexFlags and vFlag_UV3_bit)<>0);
   if hasUV3 then inc(vSize,4);
-  i := DataSize div vSize;
-  SetLength(FVertexArray,i);
+  FVertexCount := DataSize div vSize;
+  SetLength(FVertexArray,FVertexCount);
   for i := 0 to length(FVertexArray)-1 do
   begin
     FVertexArray[i].position := Pm3VEC3(vData)^;
@@ -177,12 +207,41 @@ end;
 
 procedure TF3dView.GLWndInit;
 begin
+  glClearColor(0,0,0,1);
+  if not LoadPorgram('modelEdit.vert','modelEdit.frag',FGLProgram) then
+  begin
+    FMain.Log('Error creating shader program!');
+    FMain.Log(GetLastShaderLog);
+    Exit;
+  end;
+  FUniformMVP := glGetUniformLocation(FGLProgram, 'MVP');
+
   glGenVertexArrays(1,@FGLVertexArray);
+  glBindVertexArray(FGLVertexArray);
+
   glGenBuffers(1,@FGLVertexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(TM3VertexInfoFull)*length(FVertexArray), @FVertexArray[0], GL_STATIC_DRAW);
+
   glGenBuffers(1,@FGLFacesBuffer);
+
+  FCamera.LookAt3f(
+    0,10,10,
+    0,0,0,
+    0,11,10
+  );
 end;
 
-procedure TF3dView.FillArrays;
+procedure TF3dView.GLWndFinal;
+begin
+  if FGLProgram = 0 then Exit;
+  glDeleteProgram(FGLProgram);
+  glDeleteBuffers(1,@FGLVertexBuffer);
+  glDeleteBuffers(1,@FGLFacesBuffer);
+  glDeleteVertexArrays(1,@FGLVertexArray);
+end;
+
+procedure TF3dView.ProcessModelData;
 begin
   glBindVertexArray(FGLVertexArray);
   glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
@@ -208,18 +267,55 @@ begin
   FRegionsTag := FM3File.FollowRefField(pTag^,0,'regions');
   FObjectsTag := FM3File.FollowRefField(pTag^,0,'objects');
 
+  FFacesTag := FM3File.FollowRefField(pTag^,0,'faces');
+  if FFacesTag = nil then
+  begin
+    FFacesData := nil;
+    FFacesCount := 0;
+  end
+  else
+  begin
+    FFacesData := FFacesTag^.Data;
+    FFacesCount := FFacesTag^.ItemCount;
+  end;
 
+  FBonesTag := FM3File.FollowRefField(pModl^,0,'bones');
+
+  if not CreateRenderWindow(Panel3D.Handle,0,@GLWndInit,@GLWndFinal) then
+    FMain.Log('Failed to create render window (%d)',[GetLastOSError]);
   Show;
 end;
 
 procedure TF3dView.FrameStart;
 begin
-
+  if FGLProgram = 0 then Exit;
+  FCamera.ToPerspectiveMatrix(Panel3D.Width,Panel3D.Height,FCameraMatrix);
 end;
 
 procedure TF3dView.FrameRender;
+var
+  mvp: TglmMatrixf4;
 begin
+  if FGLProgram = 0 then Exit;
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  glUseProgram(FGLProgram);
+  glUniformMatrix4fv(FUniformMVP,1,GL_FALSE,@FCameraMatrix[0]);
+
+  glBindVertexArray(FGLVertexArray);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
+  glVertexAttribPointer(
+    0,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(TM3VertexInfoFull)-12, // struct size - 3*GL_Float
+    PGLvoid(0)
+  );
+
+  glDrawArrays(GL_POINTS,0,FVertexCount);
+
+  glDisableVertexAttribArray(0);
 end;
 
 end.

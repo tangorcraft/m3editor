@@ -27,8 +27,8 @@ uses
 type
   TProcedureOfObject = procedure of object;
 
-function CreateRenderWindow(const wParent: HWND; const wIdx: Integer; const InitProc: TProcedure = nil): boolean;
-function CreateRenderWindow(const wParent: HWND; const wIdx: Integer; const InitProc: TProcedureOfObject): boolean;
+function CreateRenderWindow(const wParent: HWND; const wIdx: Integer; const InitProc: TProcedure = nil; FinalProc: TProcedure = nil): boolean;
+function CreateRenderWindow(const wParent: HWND; const wIdx: Integer; const InitProc, FinalProc: TProcedureOfObject): boolean;
 function RenderWindowResized(var W, H: Integer; const wIdx: Integer): Boolean;
 function RenderWindowVisible(const wIdx: Integer): Boolean;
 
@@ -44,7 +44,7 @@ procedure WaitForFrameRenderEnd;
 implementation
 
 const
-  WndClassName = 'glRenderWnd';
+  WndClassNameW: array[0..11] of WideChar = ('g','l','R','e','n','d','e','r','W','n','d',#0);
 
 type
   PRenderWndRec = ^TRenderWndRec;
@@ -57,6 +57,9 @@ type
 
     rDC: HDC;
     rRC: HGLRC;
+
+    finProc: TProcedure;
+    finMethod: TProcedureOfObject;
   end;
 
 var
@@ -184,6 +187,94 @@ begin
   Result:=-1;
 end;
 
+function WindowProc(wHandle: HWnd; uMsg: UINT; WParam: wParam;
+  LParam: lParam): lResult; stdcall;
+var
+  wP: HWND;
+  R: TRect;
+  wIdx: Integer;
+  rep: Boolean;
+begin
+  wIdx:=GetWndIdxByHandle(wHandle);
+  case uMsg of
+    WM_NCHITTEST:
+      begin
+        Result := DefWindowProc(wHandle, uMsg, WParam, LParam);
+        if (Result <> HTNOWHERE)and(Result<>HTERROR) then
+          Result:=HTTRANSPARENT;
+      end;
+    WM_ERASEBKGND:
+      begin
+        Result := 1;
+      end;
+    WM_DESTROY:
+      begin
+        if (wIdx>=0) and (wIdx < wListCount) then
+        with wndList[wIdx] do
+        begin
+          if initDone then
+          begin
+            rep:=True;
+            while rep do
+            begin
+              RenderLock;
+              try
+                if not rendering then
+                begin
+                  if wglMakeCurrent(rDC,rRC) then
+                  try
+                    if Assigned(finProc) then finProc();
+                    if Assigned(finMethod) then finMethod();
+                  except
+
+                  end;
+                  wglMakeCurrent(0,0);
+                  DestroyRenderingContext(rRC);
+                  ReleaseDC(Handle,rDC);
+                  initDone:=False;
+                  Handle:=INVALID_HANDLE_VALUE;
+                  rep:=False;
+                end;
+              finally
+                RenderUnLock;
+              end;
+              if rep then
+                Sleep(1);
+            end;
+            // restart render ?
+          end
+          else
+            Handle:=INVALID_HANDLE_VALUE;
+        end;
+        Result := DefWindowProc(wHandle, uMsg, WParam, LParam);
+      end;
+    else Result := DefWindowProc(wHandle, uMsg, WParam, LParam);;
+  end; // case
+end;
+
+procedure InitWndClass;
+var
+  WindowClass : WNDCLASSW;
+begin
+  if ClassAtom <> 0 then Exit;
+  with WindowClass do begin
+    style := CS_OWNDC;
+    lpfnWndProc := @WindowProc;
+    cbClsExtra := 0;
+    cbWndExtra := 0;
+    hInstance := system.HInstance;
+    hIcon := Windows.LoadIcon(0, IDI_APPLICATION);;
+    hCursor := LoadCursor (0, idc_Arrow);   {Ссылка на курсор, сейчас - в виде стрелки.}
+    hbrBackground := 0;
+    lpszMenuName := nil;
+    lpszClassName := @WndClassNameW; {Имя класса.}
+  end;
+  ClassAtom:= Windows.RegisterClassW(@WindowClass);
+  if ClassAtom=0 then
+    raise Exception.CreateFmt('Couldn''t create a window class.'#13'Error code: %d',
+      [GetLastError]);
+end;
+
 function CreateRenderWindowInternal(const wParent: HWND; const wIdx: Integer): Boolean;
 var
   R: TRect;
@@ -202,9 +293,11 @@ begin
     FillChar(R,SizeOf(R),0);
     if IsWindow(wParent) and (wParent<>0) and GetClientRect(wParent,R) then
     begin
-      Handle := CreateWindow(
-        WndClassName,
-        '',   {Заголовок окна}
+      InitWndClass;
+      Handle := Windows.CreateWindowExW(
+        0,
+        @WndClassNameW,
+        PWideChar(WideString('')),   {Заголовок окна}
         WS_CHILD or WS_VISIBLE,      {Стиль окна.}
         R.Left,  {X}
         R.Top,   {Y}
@@ -213,7 +306,7 @@ begin
         wParent,     {WndParent - родительское окно}
         0,           {Menu}
         HInstance,   {Instance}
-        @wndList[wIdx]
+        nil
       );
       if Handle = 0 then
         Handle:=INVALID_HANDLE_VALUE
@@ -229,6 +322,7 @@ begin
         end
         else
         begin
+          Result:=true;
           if wglMakeCurrent(rDC,rRC) then
           begin
             ReadImplementationProperties;
@@ -240,13 +334,12 @@ begin
           curH:=R.Bottom;
         end;
       end;
-      Result:=true;
     end;
   end;
 end;
 
 function CreateRenderWindow(const wParent: HWND; const wIdx: Integer;
-  const InitProc: TProcedure): boolean;
+  const InitProc: TProcedure = nil; FinalProc: TProcedure = nil): boolean;
 begin
   Result := CreateRenderWindowInternal(wParent,wIdx);
   if Result and Assigned(InitProc) then
@@ -254,14 +347,16 @@ begin
     with wndList[wIdx] do
     if wglMakeCurrent(rDC,rRC) then
     begin
-      InitProc;
+      finProc := FinalProc;
+      finMethod := nil;
+      InitProc();
       wglMakeCurrent(0,0);
     end;
   end;
 end;
 
 function CreateRenderWindow(const wParent: HWND; const wIdx: Integer;
-  const InitProc: TProcedureOfObject): boolean;
+  const InitProc, FinalProc: TProcedureOfObject): boolean;
 begin
   Result := CreateRenderWindowInternal(wParent,wIdx);
   if Result and Assigned(InitProc) then
@@ -269,6 +364,8 @@ begin
     with wndList[wIdx] do
     if wglMakeCurrent(rDC,rRC) then
     begin
+      finProc := nil;
+      finMethod := FinalProc;
       InitProc;
       wglMakeCurrent(0,0);
     end;
@@ -332,87 +429,6 @@ begin
         curH:=H;
       end;
     end;
-end;
-
-function WindowProc(wHandle: HWnd; uMsg: UINT; WParam: wParam;
-  LParam: lParam): lResult; stdcall;
-var
-  wP: HWND;
-  R: TRect;
-  wIdx: Integer;
-  rep: Boolean;
-begin
-  wIdx:=GetWndIdxByHandle(wHandle);
-  case uMsg of
-    WM_NCHITTEST:
-      begin
-        Result := DefWindowProc(wHandle, uMsg, WParam, LParam);
-        if (Result <> HTNOWHERE)and(Result<>HTERROR) then
-          Result:=HTTRANSPARENT;
-      end;
-    WM_ERASEBKGND:
-      begin
-        Result := 1;
-      end;
-    WM_DESTROY:
-      begin
-        if (wIdx>=0) and (wIdx < wListCount) then
-        with wndList[wIdx] do
-        begin
-          if initDone then
-          begin
-            rep:=True;
-            while rep do
-            begin
-              RenderLock;
-              try
-                if not rendering then
-                begin
-                  DestroyRenderingContext(rRC);
-                  ReleaseDC(Handle,rDC);
-                  initDone:=False;
-                  Handle:=INVALID_HANDLE_VALUE;
-                  rep:=False;
-                end;
-              finally
-                RenderUnLock;
-              end;
-              if rep then
-                Sleep(1);
-            end;
-            // restart render ?
-          end
-          else
-            Handle:=INVALID_HANDLE_VALUE;
-        end;
-        Result := DefWindowProc(wHandle, uMsg, WParam, LParam);
-      end;
-    else Result := DefWindowProc(wHandle, uMsg, WParam, LParam);;
-  end; // case
-end;
-
-procedure InitWndClass;
-var
-  WindowClass : TWndClassEx;
-begin
-  with WindowClass do begin
-    cbSize := SizeOf(WindowClass);
-    style := CS_OWNDC;
-    lpfnWndProc := @WindowProc;
-    cbClsExtra := 0;
-    cbWndExtra := 0;
-    hInstance := HInstance;
-    hIcon := 0;
-    hCursor := LoadCursor (0, idc_Arrow);   {Ссылка на курсор, сейчас - в виде стрелки.}
-    hbrBackground := 0;
-    lpszMenuName := nil;
-    lpszClassName := WndClassName; {Имя класса.}
-    hIconSm := 0;
-  end;
-  ClassAtom:=RegisterClassEx(WindowClass);
-  if ClassAtom=0 then
-    raise Exception.CreateFmt('Couldn''t create a window class.'#13'Error code: %d',
-      [GetLastError]);
 end;
 
 procedure RenderInit(var Active: Boolean);
@@ -507,7 +523,7 @@ begin
 end;
 
 initialization
-  InitWndClass;
+  ClassAtom := 0;
   wListCount:=1;
   SetLength(wndList,wListCount);
   SetRenderEventProc(@RenderInit,RENDER_EVENT_INIT_WND);

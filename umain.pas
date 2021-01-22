@@ -186,6 +186,15 @@ begin
   end;
 
   // Render Init
+  if not InitOpenGL then
+  begin
+    Log('OpenGL initialization failed!');
+    Exit;
+  end;
+  if not ImplementationRead then
+    ReadImplementationProperties;
+  if not ExtensionsRead then
+    ReadExtensions;
   SetRenderEventProc(@InitGL,RENDER_EVENT_INIT_GL);
   SetRenderEventProc(@FrameStartGL,RENDER_EVENT_FRAME_START_GL);
   SetRenderEventProc(@RenderGL,RENDER_EVENT_BEGIN_GL);
@@ -221,6 +230,7 @@ procedure TFMain.BMeshEditorClick(Sender: TObject);
 begin
   if F3DViewEditMode = nil then
   begin
+    WndRenderStart;
     Application.CreateForm(TF3dView,F3DViewEditMode);
     F3DViewEditMode.ShowEditor(FM3File);
     BMeshEditor.Enabled := false;
@@ -452,6 +462,15 @@ end;
 procedure TFMain.InitGL(var rActive: Boolean);
 begin
   rActive := InitOpenGL;
+  if not rActive then
+  begin
+    Log('OpenGL initialization failed!');
+    Exit;
+  end;
+  if not ImplementationRead then
+    ReadImplementationProperties;
+  if not ExtensionsRead then
+    ReadExtensions;
 end;
 
 procedure TFMain.FrameStartGL(var rActive: Boolean);
