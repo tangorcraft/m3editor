@@ -227,7 +227,7 @@ begin
     case fType of
       ftUInt8: pUInt8(Data)^ := StrToInt(Item['value']);
       ftUInt16: pUInt16(Data)^ := StrToInt(Item['value']);
-      ftUInt32: pUInt32(Data)^ := StrToInt(Item['value']);
+      ftUInt32: pUInt32(Data)^ := StrToDWord(Item['value']);
       ftInt8: pInt8(Data)^ := StrToInt(Item['value']);
       ftInt16: pInt16(Data)^ := StrToInt(Item['value']);
       ftInt32: pInt32(Data)^ := StrToInt(Item['value']);
