@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  uM3File, ustructures, dglOpenGL, glMathUtils, glmCameraUtils;
+  uM3File, ustructures, dglOpenGL, glMathUtils, glmCameraUtils, Types;
 
 type
 
@@ -33,6 +33,7 @@ type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
+    Button4: TButton;
     Panel3D: TPanel;
     PanelRight: TPanel;
     PanelLeft: TPanel;
@@ -40,8 +41,21 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Panel3DMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Panel3DMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure Panel3DMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Panel3DMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure Panel3DMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
   private
     FM3File: TM3File;
     FVertexFlags: UInt32;
@@ -62,7 +76,14 @@ type
 
     FCamera: TglmFoVTargetCamera;
     FCameraMatrix: TglmMatrixf4;
+    FViewPort: TPoint;
 
+    FIsMoveMode: Boolean;
+    FMouseX: Integer;
+    FMouseY: Integer;
+
+    FVertShaderFile: string;
+    FFragShaderFile: string;
     FGLProgram: GLHandle;
     FUniformMVP: GLint;
 
@@ -107,28 +128,102 @@ const
 
 procedure TF3dView.FormCreate(Sender: TObject);
 begin
-  FCamera := TglmFoVTargetCamera.Create(90,1,500);
+  FCamera := TglmFoVTargetCamera.Create(45,1,500);
+  FViewPort.x := Panel3D.Width;
+  FViewPort.y := Panel3D.Height;
+  FVertShaderFile := IniMain.ReadString('3dview','vert','modelEdit.vert');
+  FFragShaderFile := IniMain.ReadString('3dview','frag','modelEdit.frag');
 end;
 
 procedure TF3dView.Button1Click(Sender: TObject);
 begin
-  FCamera.MoveEye(0.5,0,0);
+  FCamera.TransCamera(0,0,0.2);
 end;
 
 procedure TF3dView.Button2Click(Sender: TObject);
 begin
-  FCamera.MoveEye(-0.5,0,0);
+  FCamera.TransCamera(0,0,-0.2);
 end;
 
 procedure TF3dView.Button3Click(Sender: TObject);
 begin
-  FCamera.RotateEye(0.05,0);
+  FCamera.LookAt3f(
+    5,5,5,
+    0,0,0,
+    0,0,1
+  );
+end;
+
+procedure TF3dView.Button4Click(Sender: TObject);
+var
+  i: integer;
+  str: TStringList;
+  s: string;
+begin
+  str := TStringList.Create;
+  for i := 0 to FVertexCount do
+  begin
+    s := IntToStr(FVertexArray[i].normal.sign);
+    if str.IndexOf(s)=-1 then
+      str.Add(s);
+  end;
+  FMain.Log('normals w:'+str.Text);
+  str.Free;
+end;
+
+procedure TF3dView.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  CloseAction := caFree;
+end;
+
+procedure TF3dView.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+begin
+
 end;
 
 procedure TF3dView.FormDestroy(Sender: TObject);
 begin
   FMain.Free3DEditMode;
   FCamera.Free;
+end;
+
+procedure TF3dView.Panel3DMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  FIsMoveMode := True;
+  FMouseX := X;
+  FMouseY := Y;
+end;
+
+procedure TF3dView.Panel3DMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  if FIsMoveMode then
+  begin
+    FCamera.RotateEye((X-FMouseX)*0.01,(Y-FMouseY)*0.01);
+    FMouseX := X;
+    FMouseY := Y;
+  end;
+end;
+
+procedure TF3dView.Panel3DMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  FIsMoveMode := False;
+end;
+
+procedure TF3dView.Panel3DMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  FCamera.MoveEye(-0.2,0,0);
+  Handled := True
+end;
+
+procedure TF3dView.Panel3DMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  FCamera.MoveEye(0.2,0,0);
+  Handled := True
 end;
 
 procedure TF3dView.ReadVertexArray(vData: Pointer; DataSize: Integer);
@@ -207,8 +302,8 @@ end;
 
 procedure TF3dView.GLWndInit;
 begin
-  glClearColor(0,0,0,1);
-  if not LoadPorgram('modelEdit.vert','modelEdit.frag',FGLProgram) then
+  glClearColor(0,0,0.4,0);
+  if not LoadPorgram(FVertShaderFile,FFragShaderFile,FGLProgram) then
   begin
     FMain.Log('Error creating shader program!');
     FMain.Log(GetLastShaderLog);
@@ -226,9 +321,9 @@ begin
   glGenBuffers(1,@FGLFacesBuffer);
 
   FCamera.LookAt3f(
-    0,10,10,
+    5,5,5,
     0,0,0,
-    0,11,10
+    0,0,1
   );
 end;
 
@@ -305,11 +400,11 @@ begin
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
   glVertexAttribPointer(
-    0,
+    0, // position
     3,
     GL_FLOAT,
     GL_FALSE,
-    sizeof(TM3VertexInfoFull)-12, // struct size - 3*GL_Float
+    sizeof(TM3VertexInfoFull),
     PGLvoid(0)
   );
 

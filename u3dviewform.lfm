@@ -2,10 +2,12 @@ object F3dView: TF3dView
   Left = 365
   Height = 637
   Top = 161
-  Width = 812
+  Width = 735
   Caption = 'M3 Model - 3D View'
   ClientHeight = 637
-  ClientWidth = 812
+  ClientWidth = 735
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   LCLVersion = '2.0.0.4'
@@ -13,11 +15,11 @@ object F3dView: TF3dView
     Left = 0
     Height = 121
     Top = 516
-    Width = 812
+    Width = 735
     Align = alBottom
     BevelInner = bvLowered
     ClientHeight = 121
-    ClientWidth = 812
+    ClientWidth = 735
     TabOrder = 0
     object Button1: TButton
       Left = 16
@@ -46,6 +48,15 @@ object F3dView: TF3dView
       OnClick = Button3Click
       TabOrder = 2
     end
+    object Button4: TButton
+      Left = 279
+      Height = 25
+      Top = 9
+      Width = 75
+      Caption = 'Button4'
+      OnClick = Button4Click
+      TabOrder = 3
+    end
   end
   object PanelLeft: TPanel
     Left = 0
@@ -58,7 +69,7 @@ object F3dView: TF3dView
     TabOrder = 1
   end
   object PanelRight: TPanel
-    Left = 642
+    Left = 565
     Height = 516
     Top = 0
     Width = 170
@@ -71,9 +82,14 @@ object F3dView: TF3dView
     Left = 160
     Height = 516
     Top = 0
-    Width = 482
+    Width = 405
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
+    OnMouseDown = Panel3DMouseDown
+    OnMouseMove = Panel3DMouseMove
+    OnMouseUp = Panel3DMouseUp
+    OnMouseWheelDown = Panel3DMouseWheelDown
+    OnMouseWheelUp = Panel3DMouseWheelUp
   end
 end

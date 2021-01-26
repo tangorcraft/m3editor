@@ -124,6 +124,8 @@ type
     procedure TransEye(const XOffset, YOffset, ZOffset: GLfloat);
     procedure TransCamera(const XOffset, YOffset, ZOffset: GLfloat);
 
+    procedure RotateEyeFree(const SideAngleRad, UpAngleRad: GLfloat);
+    procedure TurnEyeFree(const SideAngleRad, UpAngleRad: GLfloat);
     procedure RotateEye(const SideAngleRad, UpAngleRad: GLfloat);
     procedure TurnEye(const SideAngleRad, UpAngleRad: GLfloat);
 
@@ -383,12 +385,24 @@ begin
 end;
 
 procedure TglmFoVTargetCamera.MoveTarget(const ForwOffset, SideOffset, UpOffset: GLfloat);
+var
+  newT: TGLVectorf3;
+  dot: GLfloat;
 begin
   if ForwOffset<>0 then
   begin
-    FTarget[0]:=FTarget[0]+FForw[0]*ForwOffset;
-    FTarget[1]:=FTarget[1]+FForw[1]*ForwOffset;
-    FTarget[2]:=FTarget[2]+FForw[2]*ForwOffset;
+    newT[0]:=FTarget[0]+FForw[0]*ForwOffset;
+    newT[1]:=FTarget[1]+FForw[1]*ForwOffset;
+    newT[2]:=FTarget[2]+FForw[2]*ForwOffset;
+    dot:=
+      FForw[0]*(newT[0]-FEye[0])+
+      FForw[1]*(newT[1]-FEye[1])+
+      FForw[2]*(newT[2]-FEye[2])
+    ;
+    if dot > 0 then
+      FTarget := newT
+    else
+      Exit;
   end;
   if SideOffset<>0 then
   begin
@@ -407,12 +421,24 @@ begin
 end;
 
 procedure TglmFoVTargetCamera.MoveEye(const ForwOffset, SideOffset, UpOffset: GLfloat);
+var
+  newEye: TGLVectorf3;
+  dot: GLfloat;
 begin
   if ForwOffset<>0 then
   begin
-    FEye[0]:=FEye[0]+FForw[0]*ForwOffset;
-    FEye[1]:=FEye[1]+FForw[1]*ForwOffset;
-    FEye[2]:=FEye[2]+FForw[2]*ForwOffset;
+    newEye[0]:=FEye[0]+FForw[0]*ForwOffset;
+    newEye[1]:=FEye[1]+FForw[1]*ForwOffset;
+    newEye[2]:=FEye[2]+FForw[2]*ForwOffset;
+    dot:=
+      FForw[0]*(FTarget[0]-newEye[0])+
+      FForw[1]*(FTarget[1]-newEye[1])+
+      FForw[2]*(FTarget[2]-newEye[2])
+    ;
+    if dot > 0 then
+      FEye := newEye
+    else
+      Exit;
   end;
   if SideOffset<>0 then
   begin
@@ -508,7 +534,7 @@ begin
   RecalcNormals;
 end;
 
-procedure TglmFoVTargetCamera.RotateEye(const SideAngleRad, UpAngleRad: GLfloat);
+procedure TglmFoVTargetCamera.RotateEyeFree(const SideAngleRad, UpAngleRad: GLfloat);
 var
   M: TglmMatrixf4;
   angle: GLfloat;
@@ -517,7 +543,9 @@ begin
   rVector[0] := FSide[0]*SideAngleRad + FUp[0]*UpAngleRad;
   rVector[1] := FSide[1]*SideAngleRad + FUp[1]*UpAngleRad;
   rVector[2] := FSide[2]*SideAngleRad + FUp[2]*UpAngleRad;
+  glmNormalizeVector3fv(@rVector[0]);
   glmComputeNormalOfPlane3fv(@rAxis[0],@FForw[0],@rVector[0]);
+  glmNormalizeVector3fv(@rAxis[0]);
   angle := sqrt(sqr(SideAngleRad)+sqr(UpAngleRad));
 
   M[m4i0_0] := FSide[0];
@@ -554,9 +582,10 @@ begin
   FEye[0] := M[m4i0_3]+FTarget[0];
   FEye[1] := M[m4i1_3]+FTarget[1];
   FEye[2] := M[m4i2_3]+FTarget[2];
+  RecalcNormals;
 end;
 
-procedure TglmFoVTargetCamera.TurnEye(const SideAngleRad, UpAngleRad: GLfloat);
+procedure TglmFoVTargetCamera.TurnEyeFree(const SideAngleRad, UpAngleRad: GLfloat);
 var
   M: TglmMatrixf4;
   angle: GLfloat;
@@ -565,7 +594,9 @@ begin
   rVector[0] := FSide[0]*SideAngleRad + FUp[0]*UpAngleRad;
   rVector[1] := FSide[1]*SideAngleRad + FUp[1]*UpAngleRad;
   rVector[2] := FSide[2]*SideAngleRad + FUp[2]*UpAngleRad;
+  glmNormalizeVector3fv(@rVector[0]);
   glmComputeNormalOfPlane3fv(@rAxis[0],@FForw[0],@rVector[0]);
+  glmNormalizeVector3fv(@rAxis[0]);
   angle := sqrt(sqr(SideAngleRad)+sqr(UpAngleRad));
 
   M[m4i0_0] := FSide[0];
@@ -602,6 +633,49 @@ begin
   FTarget[0] := M[m4i0_3]+FEye[0];
   FTarget[1] := M[m4i1_3]+FEye[1];
   FTarget[2] := M[m4i2_3]+FEye[2];
+  RecalcNormals;
+end;
+
+procedure TglmFoVTargetCamera.RotateEye(const SideAngleRad, UpAngleRad: GLfloat);
+var
+  M: TglmMatrixf4;
+begin
+  glmIdntRotateRadf(M,SideAngleRad,0,0,1);
+  glmRotateRadf(M,UpAngleRad,FSide[0],FSide[1],FSide[2]);
+  FEye[0] := FEye[0]-FTarget[0];
+  FEye[1] := FEye[1]-FTarget[1];
+  FEye[2] := FEye[2]-FTarget[2];
+
+  glmMulVector3f(M,FEye,1);
+  glmMulVector3f(M,FForw,0);
+  glmMulVector3f(M,FUp,0);
+  glmMulVector3f(M,FSide,0);
+
+  FEye[0] := FEye[0]+FTarget[0];
+  FEye[1] := FEye[1]+FTarget[1];
+  FEye[2] := FEye[2]+FTarget[2];
+  RecalcNormals;
+end;
+
+procedure TglmFoVTargetCamera.TurnEye(const SideAngleRad, UpAngleRad: GLfloat);
+var
+  M: TglmMatrixf4;
+begin
+  glmIdntRotateRadf(M,-SideAngleRad,0,0,1);
+  glmRotateRadf(M,-UpAngleRad,FSide[0],FSide[1],FSide[2]);
+  FTarget[0] := FTarget[0]-FEye[0];
+  FTarget[1] := FTarget[1]-FEye[1];
+  FTarget[2] := FTarget[2]-FEye[2];
+
+  glmMulVector3f(M,FEye,1);
+  glmMulVector3f(M,FForw,0);
+  glmMulVector3f(M,FUp,0);
+  glmMulVector3f(M,FSide,0);
+
+  FTarget[0] := FEye[0]+FTarget[0];
+  FTarget[1] := FEye[1]+FTarget[1];
+  FTarget[2] := FEye[2]+FTarget[2];
+  RecalcNormals;
 end;
 
 end.

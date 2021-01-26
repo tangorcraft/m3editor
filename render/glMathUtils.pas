@@ -135,6 +135,8 @@ procedure glmRotateRad3fv(const M: PGLfloat; const angle: GLfloat;
 procedure glmRotateDeg3fv(const M: PGLfloat; const angle: GLfloat;
   const RotateVec: PGLfloat);
 
+procedure glmMulVector3f(const M: PGLfloat; const V: PGLfloat; const w: GLfloat);
+
 implementation
 
 threadvar
@@ -882,6 +884,34 @@ procedure glmRotateDeg3fv(const M: PGLfloat; const angle: GLfloat;
   const RotateVec: PGLfloat);
 begin
   glmRotateRadf(M,(angle*Pi)/180.0,RotateVec[0],RotateVec[1],RotateVec[2]);
+end;
+
+procedure glmMulVector3f(const M: PGLfloat; const V: PGLfloat; const w: GLfloat);
+var
+  Vec: TGLVectorf4;
+begin
+  //Make a copy
+  Move(V^,Vec,sizeof(GLfloat)*3);
+  Vec[3]:=w;
+
+  V[0]:=Vec[0]*M[m4i0_0]+
+        Vec[1]*M[m4i0_1]+
+        Vec[2]*M[m4i0_2]+
+        Vec[3]*M[m4i0_3];
+  V[1]:=Vec[0]*M[m4i1_0]+
+        Vec[1]*M[m4i1_1]+
+        Vec[2]*M[m4i1_2]+
+        Vec[3]*M[m4i1_3];
+  V[2]:=Vec[0]*M[m4i2_0]+
+        Vec[1]*M[m4i2_1]+
+        Vec[2]*M[m4i2_2]+
+        Vec[3]*M[m4i2_3];
+  {
+  V[3]:=Vec[0]*M[m4i3_0]+
+        Vec[1]*M[m4i3_1]+
+        Vec[2]*M[m4i3_2]+
+        Vec[3]*M[m4i3_3];
+  }
 end;
 
 end.
