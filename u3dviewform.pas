@@ -85,7 +85,12 @@ type
     FVertShaderFile: string;
     FFragShaderFile: string;
     FGLProgram: GLHandle;
-    FUniformMVP: GLint;
+    // uniforms
+    FGLU_MVP: GLint;
+    FGLUEyeForward: GLint;
+    FGLUEyePos: GLint;
+    FGLULightPos: GLint;
+    //FGLU: GLint;
 
     procedure ReadVertexArray(vData: Pointer; DataSize: Integer);
 
@@ -248,7 +253,7 @@ begin
   begin
     FVertexArray[i].position := Pm3VEC3(vData)^;
     inc(vData,12); //sizeof(m3VEC3)
-
+    // offset 12
     FVertexArray[i].boneWeight0 := PUInt8(vData)^;
     inc(vData);
     FVertexArray[i].boneWeight1 := PUInt8(vData)^;
@@ -257,7 +262,7 @@ begin
     inc(vData);
     FVertexArray[i].boneWeight3 := PUInt8(vData)^;
     inc(vData);
-
+    // offset 16
     FVertexArray[i].boneLookupIndex0 := PUInt8(vData)^;
     inc(vData);
     FVertexArray[i].boneLookupIndex1 := PUInt8(vData)^;
@@ -266,35 +271,37 @@ begin
     inc(vData);
     FVertexArray[i].boneLookupIndex3 := PUInt8(vData)^;
     inc(vData);
-
+    // offset 20
     FVertexArray[i].normal := Pm3Normal4b(vData)^;
     inc(vData,4); //sizeof(m3Normal4b)
-
+    // offset 24
     if hasColor then
     begin
       FVertexArray[i].color := Pm3Color(vData)^;
       inc(vData,4); //sizeof(m3Color)
     end;
-
+    // offset 28
     FVertexArray[i].uv0 := Pm3UV(vData)^;
     inc(vData,4); //sizeof(m3UV)
-
+    // offset 32
     if hasUV1 then
     begin
       FVertexArray[i].uv1 := Pm3UV(vData)^;
       inc(vData,4); //sizeof(m3UV)
     end;
+    // offset 36
     if hasUV2 then
     begin
       FVertexArray[i].uv2 := Pm3UV(vData)^;
       inc(vData,4); //sizeof(m3UV)
     end;
+    // offset 40
     if hasUV3 then
     begin
       FVertexArray[i].uv3 := Pm3UV(vData)^;
       inc(vData,4); //sizeof(m3UV)
     end;
-
+    // offset 44
     FVertexArray[i].tangent := Pm3Normal4b(vData)^;
     inc(vData,4); //sizeof(m3Normal4b)
   end;
@@ -309,7 +316,11 @@ begin
     FMain.Log(GetLastShaderLog);
     Exit;
   end;
-  FUniformMVP := glGetUniformLocation(FGLProgram, 'MVP');
+  FGLU_MVP := glGetUniformLocation(FGLProgram, 'MVP');
+  FGLUEyeForward := glGetUniformLocation(FGLProgram, 'cam_forward');
+  FGLUEyePos := glGetUniformLocation(FGLProgram, 'EyePos');
+  FGLULightPos := glGetUniformLocation(FGLProgram, 'LightPos');
+  glEnable(GL_DEPTH_TEST);
 
   glGenVertexArrays(1,@FGLVertexArray);
   glBindVertexArray(FGLVertexArray);
@@ -319,6 +330,12 @@ begin
   glBufferData(GL_ARRAY_BUFFER, sizeof(TM3VertexInfoFull)*length(FVertexArray), @FVertexArray[0], GL_STATIC_DRAW);
 
   glGenBuffers(1,@FGLFacesBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,FGLFacesBuffer);
+  if Assigned(FFacesTag) then
+  with FFacesTag^ do
+  begin
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,ItemCount*ItemSize,Data,GL_STATIC_DRAW);
+  end;
 
   FCamera.LookAt3f(
     5,5,5,
@@ -389,15 +406,28 @@ end;
 
 procedure TF3dView.FrameRender;
 var
-  mvp: TglmMatrixf4;
+  i: integer;
+  vi, fi, fn: UInt32;
+  fv: TGLVectorf3;
 begin
   if FGLProgram = 0 then Exit;
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  if RenderWindowResized(FViewPort.x,FViewPort.y,0) then
+    glViewport(0,0,FViewPort.x,FViewPort.y);
   glUseProgram(FGLProgram);
-  glUniformMatrix4fv(FUniformMVP,1,GL_FALSE,@FCameraMatrix[0]);
+  glUniformMatrix4fv(FGLU_MVP,1,GL_FALSE,@FCameraMatrix[0]);
+  fv := FCamera.ForwardVector;
+  glUniform3fv(FGLUEyeForward,1,@fv[0]);
+  fv := FCamera.Eye;
+  glUniform3fv(FGLUEyePos,1,@fv[0]);
+  fv[0] := FCamera.Eye[0] - FCamera.ForwardVector[0]*2;
+  fv[1] := FCamera.Eye[1] - FCamera.ForwardVector[1]*2;
+  fv[2] := FCamera.Eye[2] - FCamera.ForwardVector[2]*2;
+  glUniform3fv(FGLULightPos,1,@fv[0]);
 
   glBindVertexArray(FGLVertexArray);
   glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER,FGLVertexBuffer);
   glVertexAttribPointer(
     0, // position
@@ -407,10 +437,31 @@ begin
     sizeof(TM3VertexInfoFull),
     PGLvoid(0)
   );
+  glVertexAttribPointer(
+    1, //normal
+    4,
+    GL_UNSIGNED_BYTE,
+    GL_FALSE,
+    sizeof(TM3VertexInfoFull),
+    PGLvoid(20)
+  );
 
-  glDrawArrays(GL_POINTS,0,FVertexCount);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,FGLFacesBuffer);
+  if Assigned(FRegionsTag) then
+    with FRegionsTag^ do
+    for i := 0 to ItemCount-1 do
+    begin
+      if
+        ReadFieldData(FRegionsTag^,'firstVertexIndex',i,vi,4) and
+        //ReadFieldData(FRegionsTag^,'numberOfVertices',i,vn,4) and
+        ReadFieldData(FRegionsTag^,'firstFaceVertexIndexIndex',i,fi,4) and
+        ReadFieldData(FRegionsTag^,'numberOfFaceVertexIndices',i,fn,4)
+      then
+        glDrawElementsBaseVertex(GL_TRIANGLES,fn,GL_UNSIGNED_SHORT,PGLvoid(fi*2),vi);
+    end;
 
   glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
 end;
 
 end.
