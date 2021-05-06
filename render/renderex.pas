@@ -43,7 +43,11 @@ var
   pch: array[word] of char;
 begin
   Result := false;
-  if not FileExists(FileName) then exit;
+  if not FileExists(FileName) then
+  begin
+    logStr := logStr + 'File not found "'+FileName+'"' + #13#10;
+    Exit;
+  end;
   with TStringList.Create do
   try
     LoadFromFile(FileName);
