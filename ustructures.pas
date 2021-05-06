@@ -242,7 +242,7 @@ type
     procedure LoadInternals(const aFileName: string);
     procedure SaveInternals(const aFileName: string);
 
-    function GetStructureInfo(var m3Tag: TM3Structure): boolean;
+    function GetStructureInfo(var m3Tag: TM3Structure; const AllowThisField: boolean = false): boolean;
     procedure GetTagSize(var m3Tag: TM3Structure);
 
     function GetTagInfoFromName(var m3Tag: TM3Structure): boolean;
@@ -871,7 +871,8 @@ begin
   end;
 end;
 
-function TM3Structures.GetStructureInfo(var m3Tag: TM3Structure): boolean;
+function TM3Structures.GetStructureInfo(var m3Tag: TM3Structure;
+  const AllowThisField: boolean): boolean;
 var
   i, j, k, idx, off: integer;
 begin
@@ -917,6 +918,30 @@ begin
     SetLength(m3Tag.ItemFields,0);
     j := 0;
     off := 0;
+    if (length(iFields)>1) and AllowThisField then
+    begin
+      SetLength(m3Tag.ItemFields,1);
+      with m3Tag.ItemFields[0] do
+      begin
+        fName := '{this}';
+        fGroupName := '';
+        fSubLevel := 0;
+        fType := ftSubStruct;
+        fTypeName := m3Tag.StructName;
+        fTypeInfo := '';
+        fTypeFlag := false;
+        for k := 0 to 31 do
+          fTypeFlagBits[k] := '';
+        fSize := m3Tag.ItemSize;
+        fOffset := 0;
+        fDefault := '';
+        fExpected := '';
+        fRefTo := '';
+        fRefToSpecial := sstNone;
+        fHint := '';
+      end;
+      j:=1;
+    end;
     for i := 0 to length(iFields)-1 do
       if (
          (m3Tag.Ver >= iFields[i].fiVerMin) and (m3Tag.Ver <= iFields[i].fiVerMax)

@@ -137,7 +137,7 @@ begin
     FM3Struct := PM3Structure(treeTags.Selected.Data);
   if FM3Struct <> nil then
   begin
-    Structures.GetStructureInfo(FM3Struct^);
+    Structures.GetStructureInfo(FM3Struct^,true);
     UpdateDescription;
     FTagItemIdxFirst := aIdx;
     FTagItemDisplayRange := False;
