@@ -81,7 +81,7 @@ type
     FTagItemIdxFirst: Integer;
     FTagItemIdxLast: Integer;
 
-    procedure SelectStructure(const S: PM3Structure);
+    procedure SelectStructure(const S: PM3Structure; const aIdx: Integer = 0);
     procedure JumpToStruct(const Ref: TM3RefFrom);
 
     procedure UpdateItemLabel;
@@ -130,7 +130,8 @@ begin
     SelectStructure(treeTags.Selected.Data);
 end;
 
-procedure TFTagEditor.SelectStructure(const S: PM3Structure);
+procedure TFTagEditor.SelectStructure(const S: PM3Structure;
+  const aIdx: Integer);
 begin
   if (S <> nil) and Assigned(treeTags.Selected) then
     FM3Struct := PM3Structure(treeTags.Selected.Data);
@@ -138,7 +139,7 @@ begin
   begin
     Structures.GetStructureInfo(FM3Struct^);
     UpdateDescription;
-    FTagItemIdxFirst := 0;
+    FTagItemIdxFirst := aIdx;
     FTagItemDisplayRange := False;
     PanelNavi.Enabled := True;
     UpdateItemTable;
