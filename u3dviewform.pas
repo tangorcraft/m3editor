@@ -30,18 +30,19 @@ type
   { TF3dView }
 
   TF3dView = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
+    BUp: TButton;
+    BDown: TButton;
+    BReset: TButton;
+    BTestNormal: TButton;
+    cbWireFrame: TCheckBox;
     Panel3D: TPanel;
     PanelRight: TPanel;
     PanelLeft: TPanel;
     PanelBottom: TPanel;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure BUpClick(Sender: TObject);
+    procedure BDownClick(Sender: TObject);
+    procedure BResetClick(Sender: TObject);
+    procedure BTestNormalClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -146,17 +147,17 @@ begin
   FFragShaderFile := IniMain.ReadString('3dview','frag','modelEdit.frag');
 end;
 
-procedure TF3dView.Button1Click(Sender: TObject);
+procedure TF3dView.BUpClick(Sender: TObject);
 begin
   FCamera.TransCamera(0,0,0.2);
 end;
 
-procedure TF3dView.Button2Click(Sender: TObject);
+procedure TF3dView.BDownClick(Sender: TObject);
 begin
   FCamera.TransCamera(0,0,-0.2);
 end;
 
-procedure TF3dView.Button3Click(Sender: TObject);
+procedure TF3dView.BResetClick(Sender: TObject);
 begin
   FCamera.LookAt3f(
     5,5,5,
@@ -165,7 +166,7 @@ begin
   );
 end;
 
-procedure TF3dView.Button4Click(Sender: TObject);
+procedure TF3dView.BTestNormalClick(Sender: TObject);
 var
   i: integer;
   str: TStringList;
@@ -451,6 +452,19 @@ begin
     sizeof(TM3VertexInfoFull),
     PGLvoid(20)
   );
+  glVertexAttribPointer(
+    2, //uv0
+    2,
+    GL_SHORT,
+    GL_FALSE,
+    sizeof(TM3VertexInfoFull),
+    PGLvoid(28)
+  );
+
+  if cbWireFrame.Checked then
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+  else
+    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,FGLFacesBuffer);
   if Assigned(FRegionsTag) then

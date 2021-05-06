@@ -10,6 +10,7 @@ object F3dView: TF3dView
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  ShowInTaskBar = stAlways
   LCLVersion = '2.0.0.4'
   object PanelBottom: TPanel
     Left = 0
@@ -21,41 +22,49 @@ object F3dView: TF3dView
     ClientHeight = 121
     ClientWidth = 735
     TabOrder = 0
-    object Button1: TButton
+    object BUp: TButton
       Left = 16
       Height = 25
       Top = 9
       Width = 75
-      Caption = 'Button1'
-      OnClick = Button1Click
+      Caption = 'Up'
+      OnClick = BUpClick
       TabOrder = 0
     end
-    object Button2: TButton
+    object BDown: TButton
       Left = 16
       Height = 25
       Top = 41
       Width = 75
-      Caption = 'Button2'
-      OnClick = Button2Click
+      Caption = 'Down'
+      OnClick = BDownClick
       TabOrder = 1
     end
-    object Button3: TButton
+    object BReset: TButton
       Left = 114
       Height = 25
       Top = 9
       Width = 75
-      Caption = 'Button3'
-      OnClick = Button3Click
+      Caption = 'Reset'
+      OnClick = BResetClick
       TabOrder = 2
     end
-    object Button4: TButton
+    object BTestNormal: TButton
       Left = 279
       Height = 25
       Top = 9
-      Width = 75
-      Caption = 'Button4'
-      OnClick = Button4Click
+      Width = 106
+      Caption = 'Report Normals'
+      OnClick = BTestNormalClick
       TabOrder = 3
+    end
+    object cbWireFrame: TCheckBox
+      Left = 16
+      Height = 19
+      Top = 78
+      Width = 109
+      Caption = 'Wireframe Mode'
+      TabOrder = 4
     end
   end
   object PanelLeft: TPanel
@@ -65,7 +74,7 @@ object F3dView: TF3dView
     Width = 160
     Align = alLeft
     BevelOuter = bvLowered
-    Caption = 'PanelLeft'
+    Caption = 'Not Implemented'
     TabOrder = 1
   end
   object PanelRight: TPanel
@@ -75,7 +84,7 @@ object F3dView: TF3dView
     Width = 170
     Align = alRight
     BevelOuter = bvLowered
-    Caption = 'PanelRight'
+    Caption = 'Not Implemented'
     TabOrder = 2
   end
   object Panel3D: TPanel
@@ -85,6 +94,7 @@ object F3dView: TF3dView
     Width = 405
     Align = alClient
     BevelOuter = bvNone
+    Caption = 'Render Initialization failed'
     TabOrder = 3
     OnMouseDown = Panel3DMouseDown
     OnMouseMove = Panel3DMouseMove

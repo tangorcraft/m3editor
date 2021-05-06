@@ -642,18 +642,24 @@ var
 begin
   glmIdntRotateRadf(M,SideAngleRad,0,0,1);
   glmRotateRadf(M,UpAngleRad,FSide[0],FSide[1],FSide[2]);
+
   FEye[0] := FEye[0]-FTarget[0];
   FEye[1] := FEye[1]-FTarget[1];
   FEye[2] := FEye[2]-FTarget[2];
 
   glmMulVector3f(M,FEye,1);
   glmMulVector3f(M,FForw,0);
-  glmMulVector3f(M,FUp,0);
-  glmMulVector3f(M,FSide,0);
 
   FEye[0] := FEye[0]+FTarget[0];
   FEye[1] := FEye[1]+FTarget[1];
   FEye[2] := FEye[2]+FTarget[2];
+
+  glmIdntRotateRadf(M,SideAngleRad,0,0,1);
+  glmMulVector3f(M,FSide,0);
+  FSide[2] := 0;
+  glmNormalizeVector3fv(@FSide[0]);
+  //compute up as: up = side x forw
+  glmComputeNormalOfPlane3fv(@FUp[0], @FSide[0], @FForw[0]);
   RecalcNormals;
 end;
 

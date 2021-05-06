@@ -289,7 +289,6 @@ end;
 procedure TFMain.FormShow(Sender: TObject);
 begin
   {$IFOPT D-}
-  BMeshEditor.Visible := false;
   MDebugAction.Visible := false;
   MTools.Visible := False;
   {$ENDIF}

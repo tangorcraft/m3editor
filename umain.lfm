@@ -63,7 +63,7 @@ object FMain: TFMain
       Height = 25
       Top = 64
       Width = 155
-      Caption = 'Mesh Editor (WIP)'
+      Caption = '3D View (Beta)'
       OnClick = BMeshEditorClick
       TabOrder = 2
     end
@@ -92,8 +92,8 @@ object FMain: TFMain
         Left = 7
         Height = 19
         Top = 24
-        Width = 579
-        Caption = 'Ask confirmation to automatically update references'' entries number on CHAR tag edit in Tree View Editor'
+        Width = 25
+        Caption = '-'
         Enabled = False
         OnChange = cbAskOnCharAutoUpdateChange
         TabOrder = 1
