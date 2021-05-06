@@ -27,6 +27,7 @@ uses
   uM3ML, u3DViewForm, uToolTextureRename;
 
 type
+  TM3LogEvent = procedure (const S: string) of object;
 
   { TFMain }
 
@@ -94,6 +95,7 @@ type
     procedure MTextureToolClick(Sender: TObject);
   private
     FAppPath: string;
+    FOnLog: TM3LogEvent;
 
     FStructFileName: string;
     FInternalsFileName: string;
@@ -120,6 +122,8 @@ type
     procedure FreeTagEditor;
     procedure Free3DEditMode;
     procedure ModelChanged(const Changer: TForm);
+
+    property OnLog: TM3LogEvent read FOnLog write FOnLog;
   end;
 
 var
@@ -492,16 +496,26 @@ end;
 
 procedure TFMain.Log(const S: string);
 begin
-  if MemoLog.Lines.Count >= 10000 then
-    MemoLog.Lines.Clear;
-  MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+S);
+  if Assigned(FOnLog) then
+    FOnLog(S)
+  else
+  begin
+    if MemoLog.Lines.Count >= 10000 then
+      MemoLog.Lines.Clear;
+    MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+S);
+  end;
 end;
 
 procedure TFMain.Log(const Fmt: string; const Args: array of const);
 begin
-  if MemoLog.Lines.Count >= 10000 then
-    MemoLog.Lines.Clear;
-  MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+Fmt,Args);
+  if Assigned(FOnLog) then
+    FOnLog(Format(Fmt,Args))
+  else
+  begin
+    if MemoLog.Lines.Count >= 10000 then
+      MemoLog.Lines.Clear;
+    MemoLog.Lines.Add(FormatDateTime('[hh:mm:ss] ',Now)+Fmt,Args);
+  end;
 end;
 
 procedure TFMain.FreeTagEditor;
