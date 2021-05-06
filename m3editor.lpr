@@ -27,7 +27,7 @@ uses
   Forms, umain, ustructures, uTagEditor, uM3File, uEditString, uEditInteger,
   uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit, uM3ML, uCommon,
   uRefEdit, uNewTag, uColorEditor, uAbout, u3DViewForm, dglOpenGL, glMathUtils,
-  glmCameraUtils, RenderUtils, RenderWnd, CountersUtils, InterLockedSyncUtils,
+  glmCameraUtils, RenderUtils, CountersUtils, InterLockedSyncUtils,
   RenderEx, uToolBatchScan, uToolTextureRename;
 
 {$R *.res}

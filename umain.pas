@@ -129,7 +129,13 @@ var
 implementation
 
 uses
-  uCommon, uAbout, RenderWnd, RenderUtils, dglOpenGL;
+  uCommon, uAbout,
+  {$IFDEF MSWINDOWS}
+  RenderWnd,
+  {$Else}
+  RenderDummy,
+  {$ENDIF}
+  RenderUtils, dglOpenGL;
 
 {$R *.lfm}
 

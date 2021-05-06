@@ -110,7 +110,13 @@ var
 implementation
 
 uses
-  uCommon, umain, RenderUtils, RenderWnd, RenderEx;
+  uCommon, umain, RenderUtils,
+  {$IFDEF MSWINDOWS}
+  RenderWnd,
+  {$Else}
+  RenderDummy,
+  {$ENDIF}
+  RenderEx;
 
 const
   vertexSizeMin =

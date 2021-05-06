@@ -201,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="29">
+    <Units Count="28">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -361,30 +361,26 @@
         <IsPartOfProject Value="True"/>
       </Unit24>
       <Unit25>
-        <Filename Value="render\RenderWnd.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit25>
-      <Unit26>
         <Filename Value="render\renderex.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RenderEx"/>
-      </Unit26>
-      <Unit27>
+      </Unit25>
+      <Unit26>
         <Filename Value="tools\utoolbatchscan.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FBatchScan"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uToolBatchScan"/>
-      </Unit27>
-      <Unit28>
+      </Unit26>
+      <Unit27>
         <Filename Value="tools\utooltexturerename.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FTextureRename"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uToolTextureRename"/>
-      </Unit28>
+      </Unit27>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
