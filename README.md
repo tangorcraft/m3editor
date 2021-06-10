@@ -1,6 +1,10 @@
 # M3 Editor
 Program to directly edit M3 models
 
+# Executable files for Windows
+* Download latest version from [Release](https://github.com/tangorcraft/m3editor/releases) page.
+* [Download M3 Editor v0.8 executable files for Windows](https://github.com/tangorcraft/m3editor/releases/download/v0.8/m3editor-win.zip)
+
 ## Tree View Editor
 * Selecting tag on the left side will display fields of 1st element of that tag in the table.
   * To edit a field doubleclick on field row you want to edit.
