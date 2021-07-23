@@ -3,6 +3,7 @@ Program to directly edit M3 models
 
 # Executable files for Windows
 * Download latest version from [Release](https://github.com/tangorcraft/m3editor/releases) page.
+* [Download M3 Editor v0.9 executable files for Windows](https://github.com/tangorcraft/m3editor/releases/download/v0.9/m3editor-win.zip)
 * [Download M3 Editor v0.8 executable files for Windows](https://github.com/tangorcraft/m3editor/releases/download/v0.8/m3editor-win.zip)
 
 ## Tree View Editor
