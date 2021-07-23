@@ -193,6 +193,7 @@ type
     frFieldRow: Integer;
     rfRefFieldOffset: Integer;
     rfName: string;
+    rfFieldName: string;
   end;
 
   PM3Structure = ^TM3Structure;

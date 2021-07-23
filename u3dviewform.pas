@@ -195,7 +195,7 @@ end;
 
 procedure TF3dView.FormDestroy(Sender: TObject);
 begin
-  FMain.Free3DEditMode;
+  FMain.Free3DViewForm;
   FCamera.Free;
 end;
 

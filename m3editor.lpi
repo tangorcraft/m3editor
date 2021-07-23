@@ -201,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="28">
+    <Units Count="29">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -381,6 +381,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uToolTextureRename"/>
       </Unit27>
+      <Unit28>
+        <Filename Value="uanimlistview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FAnimListView"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="UAnimListView"/>
+      </Unit28>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

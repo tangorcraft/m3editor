@@ -480,6 +480,7 @@ begin
                 '%d: %s [%d] -> %s (refCount = %d)',
                 [i, FTags[i].StructName, idx, ItemFields[j].fGroupName+ItemFields[j].fName, refCount]
               );
+              FTags[refIndex].RefFrom[k].rfFieldName := ItemFields[j].fGroupName+ItemFields[j].fName;
               if (ItemFields[j].fRefToSpecial<>sstNone) and (FTags[refIndex].SpecialType = sstNone) then
                 FTags[refIndex].SpecialType := ItemFields[j].fRefToSpecial;
             end;

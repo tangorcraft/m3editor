@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls,
   ExtCtrls, ustructures, uM3File, uTagEditor, IniFiles, uCHARBulkEdit,
-  uM3ML, u3DViewForm, uToolTextureRename;
+  uM3ML, UAnimListView, u3DViewForm, uToolTextureRename, uToolBatchScan;
 
 type
   TM3LogEvent = procedure (const S: string) of object;
@@ -35,8 +35,9 @@ type
     btnTreeViewEditor: TButton;
     BMeshEditor: TButton;
     btnBulkEditCHAR: TButton;
+    BAminList: TButton;
     cbAskOnJumpTo: TCheckBox;
-    cbAskOnCharAutoUpdate: TCheckBox;
+    cbTreeViewNewMode: TCheckBox;
     cbRememberStructFile: TCheckBox;
     gbOptions: TGroupBox;
     lblLastFile: TLabel;
@@ -72,10 +73,11 @@ type
     PanelMain: TPanel;
     SaveDialog: TSaveDialog;
     SaveM3MLDialog: TSaveDialog;
+    procedure BAminListClick(Sender: TObject);
     procedure BMeshEditorClick(Sender: TObject);
     procedure btnBulkEditCHARClick(Sender: TObject);
     procedure btnTreeViewEditorClick(Sender: TObject);
-    procedure cbAskOnCharAutoUpdateChange(Sender: TObject);
+    procedure cbTreeViewNewModeChange(Sender: TObject);
     procedure cbAskOnJumpToChange(Sender: TObject);
     procedure cbRememberStructFileChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -105,7 +107,8 @@ type
     FM3File: TM3File;
     FModified: Boolean;
     FTagEditor: TFTagEditor;
-    F3DViewEditMode: TF3dView;
+    FAnimListForm: TFAnimListView;
+    F3DViewForm: TF3dView;
 
     procedure UpdateLabels;
     procedure StructuresUpdate;
@@ -120,7 +123,8 @@ type
     procedure Log(const Fmt : string; const Args : Array of const);
 
     procedure FreeTagEditor;
-    procedure Free3DEditMode;
+    procedure FreeAnimListForm;
+    procedure Free3DViewForm;
     procedure ModelChanged(const Changer: TForm);
 
     property OnLog: TM3LogEvent read FOnLog write FOnLog;
@@ -150,7 +154,7 @@ begin
   FAppPath := ExtractFilePath(Application.ExeName);
   IniMain := TIniFile.Create(FAppPath+'settings.ini');
   cbAskOnJumpTo.Checked := IniMain.ReadBool('treeView','askOnJump',true);
-  cbAskOnCharAutoUpdate.Checked := IniMain.ReadBool('treeView','askCHARAuto',true);
+  cbTreeViewNewMode.Checked := IniMain.ReadBool('treeView','TreeViewMode',true);
   FStructFileName := IniMain.ReadString('main','struct',FAppPath+'structures.xml');
   cbRememberStructFile.Checked := IniMain.ReadBool('main','rememberStruct',false);
   Structures := TM3Structures.Create;
@@ -238,17 +242,39 @@ end;
 
 procedure TFMain.BMeshEditorClick(Sender: TObject);
 begin
-  if F3DViewEditMode = nil then
+  if F3DViewForm = nil then
   begin
     WndRenderStart;
-    Application.CreateForm(TF3dView,F3DViewEditMode);
-    F3DViewEditMode.ShowEditor(FM3File);
-    BMeshEditor.Enabled := false;
+    Application.CreateForm(TF3dView,F3DViewForm);
+    F3DViewForm.ShowEditor(FM3File);
+  end
+  else if F3DViewForm.Visible then
+  begin
+    F3DViewForm.BringToFront;
   end
   else
   begin
-    F3DViewEditMode.Free;
-    F3DViewEditMode := nil;
+    F3DViewForm.Free;
+    F3DViewForm := nil;
+    Application.ProcessMessages;
+    WndRenderStart;
+    Application.CreateForm(TF3dView,F3DViewForm);
+    F3DViewForm.ShowEditor(FM3File);
+  end;
+end;
+
+procedure TFMain.BAminListClick(Sender: TObject);
+begin
+  if FAnimListForm = nil then
+  begin
+    Application.CreateForm(TFAnimListView,FAnimListForm);
+    FAnimListForm.ShowEditor(FM3File);
+    BAminList.Enabled := false;
+  end
+  else
+  begin
+    FAnimListForm.Free;
+    FAnimListForm := nil;
   end;
 end;
 
@@ -259,9 +285,11 @@ begin
     IniMain.WriteString('main','struct',FStructFileName);
 end;
 
-procedure TFMain.cbAskOnCharAutoUpdateChange(Sender: TObject);
+procedure TFMain.cbTreeViewNewModeChange(Sender: TObject);
 begin
-  IniMain.WriteBool('treeView','askCHARAuto',cbAskOnCharAutoUpdate.Checked);
+  IniMain.WriteBool('treeView','TreeViewMode',cbTreeViewNewMode.Checked);
+  if Assigned(FTagEditor) then
+    FTagEditor.ResetTagTree;
 end;
 
 procedure TFMain.cbAskOnJumpToChange(Sender: TObject);
@@ -440,10 +468,11 @@ end;
 
 procedure TFMain.StructuresUpdate;
 begin
-
+  FM3File.ResetRefFrom;
   if FTagEditor <> nil then
     FTagEditor.ResetTagTree;
-  FM3File.ResetRefFrom;
+  if FAnimListForm <> nil then
+    FAnimListForm.ResetAnimView;
 end;
 
 procedure TFMain.TryOpenFile(const FileName: string);
@@ -484,13 +513,13 @@ end;
 
 procedure TFMain.FrameStartGL(var rActive: Boolean);
 begin
-  if Assigned(F3DViewEditMode) then F3DViewEditMode.FrameStart;
+  if Assigned(F3DViewForm) then F3DViewForm.FrameStart;
 end;
 
 procedure TFMain.RenderGL(var rActive: Boolean);
 begin
   case GetCurrentRenderWindowIndex of
-    0: if Assigned(F3DViewEditMode) then F3DViewEditMode.FrameRender;
+    0: if Assigned(F3DViewForm) then F3DViewForm.FrameRender;
   end;
 end;
 
@@ -525,11 +554,17 @@ begin
   btnTreeViewEditor.Enabled := true;
 end;
 
-procedure TFMain.Free3DEditMode;
+procedure TFMain.FreeAnimListForm;
 begin
-  if F3DViewEditMode <> nil then
-    F3DViewEditMode := nil;
-  BMeshEditor.Enabled := true;
+  if FAnimListForm <> nil then
+    FAnimListForm := nil;
+  BAminList.Enabled := true;
+end;
+
+procedure TFMain.Free3DViewForm;
+begin
+  if F3DViewForm <> nil then
+    F3DViewForm := nil;
 end;
 
 procedure TFMain.ModelChanged(const Changer: TForm);
@@ -538,6 +573,8 @@ begin
   FM3File.ResetRefFrom;
   if (FTagEditor <> nil) and (Changer <> FTagEditor) then
     FTagEditor.ResetTagTree;
+  if (FAnimListForm <> nil) and (Changer <> FAnimListForm) then
+    FAnimListForm.ResetAnimView;
 end;
 
 end.

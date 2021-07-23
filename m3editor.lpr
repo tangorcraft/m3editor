@@ -28,7 +28,7 @@ uses
   uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit, uM3ML, uCommon,
   uRefEdit, uNewTag, uColorEditor, uAbout, u3DViewForm, dglOpenGL, glMathUtils,
   glmCameraUtils, RenderUtils, CountersUtils, InterLockedSyncUtils,
-  RenderEx, uToolBatchScan, uToolTextureRename;
+  RenderEx, uToolBatchScan, uToolTextureRename, UAnimListView;
 
 {$R *.res}
 

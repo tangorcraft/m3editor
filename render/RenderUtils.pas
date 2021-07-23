@@ -104,8 +104,8 @@ var
   renderEvents: array[RENDER_EV_MIN..RENDER_EV_MAX] of TRenderListRec;
 
   ThreadActive: Boolean;
-  ThreadHandle: THandle;
-  ThreadId: THandle;
+  ThreadHandle: TThreadID;
+  ThreadId: TThreadID;
 
   rCS: TILCriticalSection;
 

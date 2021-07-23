@@ -41,6 +41,8 @@ function ReadFieldData(const tag: TM3Structure; const FieldName: string;
   const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
 function WriteFieldData(const tag: TM3Structure; const FieldName: string;
   const ItemIndex: Integer; var Val; const ValSize: Integer): boolean;
+function GetFieldPointer(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer): Pointer;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
 procedure NextDOMElement(var el: TDOMElement);
@@ -168,6 +170,19 @@ begin
     size := tag.ItemFields[i].fSize;
   Move(Val,p^,size);
   Result := true;
+end;
+
+function GetFieldPointer(const tag: TM3Structure; const FieldName: string;
+  const ItemIndex: Integer): Pointer;
+var
+  i: Integer;
+begin
+  Result := nil;
+  if (ItemIndex < 0) or (ItemIndex >= tag.ItemCount) then Exit;
+  i := 0;
+  while (i < length(tag.ItemFields)) and (tag.ItemFields[i].fName <> FieldName) do inc(i);
+  if i >= length(tag.ItemFields) then Exit;
+  Result := tag.Data + tag.ItemSize * ItemIndex + tag.ItemFields[i].fOffset;
 end;
 
 function GetChildDOMElement(const el: TDOMElement): TDOMElement;
