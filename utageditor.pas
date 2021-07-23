@@ -31,6 +31,9 @@ type
   { TFTagEditor }
 
   TFTagEditor = class(TForm)
+    btnCollapseAll: TSpeedButton;
+    btnExpandDown: TSpeedButton;
+    btnCollapseDown: TSpeedButton;
     btnInsertTag: TSpeedButton;
     btnDelTag: TSpeedButton;
     btnDelTagCascade: TSpeedButton;
@@ -42,6 +45,7 @@ type
     btnDelItem: TSpeedButton;
     btnMoveTagUp: TSpeedButton;
     btnTagEdit: TSpeedButton;
+    btnExpandAll: TSpeedButton;
     lblItemIndex: TLabel;
     MemoDesc: TMemo;
     PanelLeft: TPanel;
@@ -56,6 +60,10 @@ type
     TableView: TStringGrid;
     treeTags: TTreeView;
     procedure btnAppendTagClick(Sender: TObject);
+    procedure btnCollapseAllClick(Sender: TObject);
+    procedure btnCollapseDownClick(Sender: TObject);
+    procedure btnExpandAllClick(Sender: TObject);
+    procedure btnExpandDownClick(Sender: TObject);
     procedure btnInsertTagClick(Sender: TObject);
     procedure btnDelTagClick(Sender: TObject);
     procedure btnDelTagCascadeClick(Sender: TObject);
@@ -99,6 +107,9 @@ type
     procedure EditRefField(const F: TM3Field);
     procedure EditVEC3asColor(const F: TM3Field);
     procedure EditCOLasColor(const F: TM3Field);
+
+    procedure ResetTagTreeOld;
+    procedure ResetTagTreeNew;
   public
     procedure ShowEditor(const M3File: TM3File);
     procedure ResetTagTree;
@@ -127,19 +138,25 @@ const
 procedure TFTagEditor.treeTagsSelectionChanged(Sender: TObject);
 begin
   if Assigned(treeTags.Selected) then
-    SelectStructure(treeTags.Selected.Data);
+  begin
+    treeTags.Selected.Expand(false);
+    if treeTags.Selected.ImageIndex = -1 then
+      SelectStructure(treeTags.Selected.Data)
+    else
+      SelectStructure(treeTags.Selected.Data,treeTags.Selected.ImageIndex);
+  end;
 end;
 
 procedure TFTagEditor.SelectStructure(const S: PM3Structure;
   const aIdx: Integer);
 begin
-  if (S <> nil) and Assigned(treeTags.Selected) then
-    FM3Struct := PM3Structure(treeTags.Selected.Data);
+  FM3Struct := S;
   if FM3Struct <> nil then
   begin
     Structures.GetStructureInfo(FM3Struct^,true);
     UpdateDescription;
     FTagItemIdxFirst := aIdx;
+    //if Length(FM3Struct^.ItemFields)
     FTagItemDisplayRange := False;
     PanelNavi.Enabled := True;
     UpdateItemTable;
@@ -393,6 +410,28 @@ begin
   end;
 end;
 
+procedure TFTagEditor.btnCollapseAllClick(Sender: TObject);
+begin
+  treeTags.FullCollapse;
+end;
+
+procedure TFTagEditor.btnCollapseDownClick(Sender: TObject);
+begin
+  if Assigned(treeTags.Selected) then
+    treeTags.Selected.Collapse(True);
+end;
+
+procedure TFTagEditor.btnExpandAllClick(Sender: TObject);
+begin
+  treeTags.FullExpand;
+end;
+
+procedure TFTagEditor.btnExpandDownClick(Sender: TObject);
+begin
+  if Assigned(treeTags.Selected) then
+    treeTags.Selected.Expand(True);
+end;
+
 procedure TFTagEditor.btnDelTagClick(Sender: TObject);
 begin
   if FM3Struct = nil then Exit;
@@ -484,7 +523,7 @@ begin
     TableView.RowCount := 1;
     Exit;
   end;
-  if Assigned(treeTags.Selected) then
+  if (not FMain.cbTreeViewNewMode.Checked) and Assigned(treeTags.Selected) then
     treeTags.Selected.DeleteChildren;
   r := TableView.Row;
   c := TableView.Col;
@@ -559,10 +598,13 @@ begin
         begin
           if fRefTo <> '' then
             TableView.Cells[COL_Info,i+1] := 'Should reference ' + fRefTo;
-          if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
+          if not FMain.cbTreeViewNewMode.Checked then
           begin
-            ref := GetTreeTagName(FM3File[refIndex]^);
-            treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+            if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
+            begin
+              ref := GetTreeTagName(FM3File[refIndex]^);
+              treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
+            end;
           end;
         end
       else
@@ -787,22 +829,13 @@ begin
   end;
 end;
 
-procedure TFTagEditor.ShowEditor(const M3File: TM3File);
-begin
-  FM3File := M3File;
-
-  ResetTagTree;
-  SelectStructure(nil);
-
-  Show;
-end;
-
-procedure TFTagEditor.ResetTagTree;
+procedure TFTagEditor.ResetTagTreeOld;
 var
   i, idx: Integer;
 begin
   idx := FTagItemIdxFirst;
   treeTags.Items.Clear;
+  treeTags.AutoExpand := true;
   for i := 0 to FM3File.TagCount-1 do
   begin
     if FM3File[i] = FM3Struct then
@@ -816,6 +849,144 @@ begin
   if not Assigned(treeTags.Selected) then
     treeTags.Select(treeTags.Items.GetFirstNode);
   UpdateItemTable;
+end;
+
+function Min(const a, b: Integer): Integer;
+begin
+  if a > b then Result := b else Result := a;
+end;
+
+procedure TFTagEditor.ResetTagTreeNew;
+var
+  i, j, idx: Integer;
+  node, nodeFrom, nodeSub: TTreeNode;
+  ref, refFrom: PM3Structure;
+  refFieldName: string;
+begin
+  treeTags.Items.Clear;
+  treeTags.AutoExpand := false;
+  for i := 0 to FM3File.TagCount-1 do
+  begin
+    ref := FM3File[i];
+    // find parent node using refFrom[0]
+    if length(ref^.RefFrom)=0 then
+    begin
+      node := treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
+      if i <> 0 then
+        FMain.Log('Warning: tag %d:%s is not referenced from any other tag',[i, ref^.StructName]);
+    end
+    else
+    begin
+      refFrom := FM3File[ref^.RefFrom[0].rfTagIndex];
+      if Assigned(refFrom) then
+      begin
+        idx := ref^.RefFrom[0].rfItemIndex;
+        refFieldName := ref^.RefFrom[0].rfFieldName;
+        if length(ref^.RefFrom)>1 then
+          FMain.Log('Warning: tag %d:%s is referenced from more than one tag',[i, ref^.StructName]);
+        if refFrom^.Index > i then
+        begin
+          node := treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
+          FMain.Log(
+            'Warning: tag %d:%s is referenced from tag with greater index %d:%s',
+            [i, ref^.StructName, refFrom^.Index, refFrom^.StructName]
+          );
+        end
+        else
+        begin
+          // searching for refFrom tag that will become a parent node
+          // we are going to use ImageIndex field to store ItemIndex
+          nodeFrom := nil;
+          with treeTags.Items.GetEnumerator do
+          try
+            while MoveNext do
+              if (Current.Data <> nil)and(Current.Data = refFrom)and(Current.ImageIndex = idx) then
+              begin
+                nodeFrom := Current;
+                Break;
+              end;
+          finally
+            Free;
+          end;
+          if Assigned(nodeFrom) then
+            node := treeTags.Items.AddChildObject(nodeFrom,refFieldName+' -> '+GetTreeTagName(FM3File[i]^),FM3File[i])
+          else
+          begin
+            node := treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
+            FMain.Log(
+              'Warning: tag %d:%s is referenced from tag %d:%s but tree node for this tag item [%d] was not found',
+              [i, ref^.StructName, refFrom^.Index, refFrom^.StructName, idx]
+            );
+          end;
+        end;
+      end
+      else
+      begin
+        node := treeTags.Items.AddObject(nil,GetTreeTagName(FM3File[i]^),FM3File[i]);
+        FMain.Log(
+          'Warning: tag %d:%s is referenced from tag %d:%s that does not exists',
+          [i, ref^.StructName, refFrom^.Index, refFrom^.StructName]
+        );
+      end;
+    end;
+    // create subtree nodes for each item for non-simple-data-type tags
+    if length(ref^.ItemFields)>1 then
+    begin
+      nodeFrom := node;
+      for j := 0 to ref^.ItemCount-1 do
+      begin
+        if ref^.ItemCount > 21 then // subdivide items
+        begin
+          if (j mod 20) = 0 then
+            nodeFrom := treeTags.Items.AddChild(node,format('[%d-%d]',[j,Min(j+19,ref^.ItemCount-1)]));
+        end;
+        nodeSub := treeTags.Items.AddChildObject(nodeFrom,format('[%d] -> %s',[j,GetTreeTagName(FM3File[i]^)]),FM3File[i]);
+        nodeSub.ImageIndex := j;
+        // select previously selected structure item
+        if (ref = FM3Struct)and(j = FTagItemIdxFirst) then
+        begin
+          treeTags.Select(nodeSub);
+        end;
+      end;
+    end
+    else // select previously selected structure
+    if ref = FM3Struct then
+    begin
+      treeTags.Select(node);
+    end;
+  end;
+  node := treeTags.Selected;
+  treeTags.FullCollapse;
+  if not Assigned(node) then
+  begin
+    treeTags.Select(treeTags.Items.GetFirstNode);
+    FTagItemIdxFirst := 0;
+  end
+  else
+    treeTags.Select(node);
+  UpdateItemTable;
+end;
+
+procedure TFTagEditor.ShowEditor(const M3File: TM3File);
+begin
+  FM3File := M3File;
+
+  ResetTagTree;
+  if Assigned(treeTags.Selected) then
+    SelectStructure(treeTags.Selected.Data)
+  else
+    SelectStructure(nil);
+
+  Show;
+end;
+
+procedure TFTagEditor.ResetTagTree;
+begin
+  if FMain.cbTreeViewNewMode.Checked then
+    ResetTagTreeNew
+  else
+    ResetTagTreeOld;
+
 end;
 
 procedure TFTagEditor.UpdateTagTree;
