@@ -144,7 +144,11 @@ begin
   FViewPort.x := Panel3D.Width;
   FViewPort.y := Panel3D.Height;
   FVertShaderFile := IniMain.ReadString('3dview','vert','modelEdit.vert');
+  if not FileExists(FVertShaderFile) then
+    FVertShaderFile := FAppPath + 'modelEdit.vert';
   FFragShaderFile := IniMain.ReadString('3dview','frag','modelEdit.frag');
+  if not FileExists(FFragShaderFile) then
+    FFragShaderFile := FAppPath + 'modelEdit.frag';
 end;
 
 procedure TF3dView.BUpClick(Sender: TObject);
