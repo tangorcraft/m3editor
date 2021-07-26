@@ -96,7 +96,6 @@ type
     procedure MStructReloadClick(Sender: TObject);
     procedure MTextureToolClick(Sender: TObject);
   private
-    FAppPath: string;
     FOnLog: TM3LogEvent;
 
     FStructFileName: string;
@@ -133,6 +132,7 @@ type
 var
   FMain: TFMain;
   IniMain: TIniFile;
+  FAppPath: string;
 
 implementation
 
@@ -553,6 +553,7 @@ begin
   if FTagEditor <> nil then
     FTagEditor := nil;
   btnTreeViewEditor.Enabled := true;
+  BringToFront;
 end;
 
 procedure TFMain.FreeAnimListForm;
@@ -560,12 +561,14 @@ begin
   if FAnimListForm <> nil then
     FAnimListForm := nil;
   BAminList.Enabled := true;
+  BringToFront;
 end;
 
 procedure TFMain.Free3DViewForm;
 begin
   if F3DViewForm <> nil then
     F3DViewForm := nil;
+  BringToFront;
 end;
 
 procedure TFMain.ModelChanged(const Changer: TForm);
