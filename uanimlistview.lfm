@@ -15,9 +15,9 @@ object FAnimListView: TFAnimListView
     Height = 674
     Top = 0
     Width = 843
-    ActivePage = TabAnimIDs
+    ActivePage = TabAnimList
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object TabAnimIDs: TTabSheet
       Caption = 'Animation IDs'
@@ -42,6 +42,7 @@ object FAnimListView: TFAnimListView
           Top = 7
           Width = 22
           AllowAllUp = True
+          Down = True
           Glyph.Data = {
             36040000424D3604000000000000360000002800000010000000100000000100
             2000000000000004000064000000640000000000000000000000000000000000
@@ -205,6 +206,44 @@ object FAnimListView: TFAnimListView
         ItemHeight = 15
         Style = csDropDownList
         TabOrder = 0
+      end
+      object PanelBottom: TPanel
+        Left = 0
+        Height = 219
+        Top = 427
+        Width = 835
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 3
+      end
+      object dgAnimationKeyTable: TDrawGrid
+        Left = 0
+        Height = 378
+        Top = 44
+        Width = 835
+        Align = alBottom
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoEdit = False
+        ColCount = 10
+        DefaultColWidth = 32
+        DefaultRowHeight = 66
+        ExtendedSelect = False
+        Flat = True
+        Options = [goFixedVertLine, goFixedHorzLine, goDrawFocusSelected, goSmoothScroll, goScrollKeepVisible]
+        RowCount = 50
+        TabOrder = 1
+        OnDrawCell = dgAnimationKeyTableDrawCell
+        OnMouseMove = dgAnimationKeyTableMouseMove
+      end
+      object Splitter1: TSplitter
+        Cursor = crVSplit
+        Left = 0
+        Height = 5
+        Top = 422
+        Width = 835
+        Align = alBottom
+        AutoSnap = False
+        ResizeAnchor = akBottom
       end
     end
   end

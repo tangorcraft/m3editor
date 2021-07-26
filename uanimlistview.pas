@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
-  StdCtrls, Buttons, uM3File, ustructures, uCommon;
+  StdCtrls, Buttons, Grids, uM3File, ustructures, uCommon, Types;
 
 type
   PAnimSequenceData = ^TAnimSequenceData;
@@ -21,9 +21,9 @@ type
   TAnimSTC_Info = record
     itemIndex: Integer;
     name: string;
+    frameCount: Integer;
     animIds: array of UInt32;
     sequenceData: array of PAnimSequenceData;
-    //sequenceDataTypes: array of Integer;
   end;
 
   PAnimID_Info = ^TAnimID_Info;
@@ -38,23 +38,44 @@ type
 
   TAnimDuplicateAction = (daReturnExising, daMakeNew, daReturnNil);
 
+  TAnimFrameData = record
+    frame: Int32;
+    keyItemIdx: Integer;
+  end;
+
+  TAnimGridRowData = record
+    animID: UInt32;
+    animInfo: PAnimID_Info;
+    animRowTitle: string;
+    keyTag: PM3Structure;
+    keys: array of TAnimFrameData;
+  end;
+
+
   { TFAnimListView }
 
   TFAnimListView = class(TForm)
     comboFilterBySTC: TComboBox;
     comboSTC: TComboBox;
+    dgAnimationKeyTable: TDrawGrid;
     Label1: TLabel;
     lbAnimIDs: TListBox;
     PageControl: TPageControl;
+    PanelBottom: TPanel;
     pnlAnimIDBottom: TPanel;
     pnlAnimIdTop: TPanel;
     sbFilterIDs: TSpeedButton;
     sbSortByPath: TSpeedButton;
+    Splitter1: TSplitter;
     Splitter2: TSplitter;
     TabAnimIDs: TTabSheet;
     TabAnimList: TTabSheet;
     treeIDs: TTreeView;
     procedure comboFilterBySTCChange(Sender: TObject);
+    procedure dgAnimationKeyTableDrawCell(Sender: TObject; aCol, aRow: Integer;
+      aRect: TRect; aState: TGridDrawState);
+    procedure dgAnimationKeyTableMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Integer);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure lbAnimIDsDblClick(Sender: TObject);
@@ -80,6 +101,15 @@ type
     procedure ResetIDTree;
     procedure ResetSTCList;
     function GetIDTreeTagNode(const aTag: PM3Structure; const aIdx: Integer): TTreeNode;
+
+  private
+    // anim-keys grid
+    FkgMouseCol: Integer;
+    FkgCurrentIdx: Integer;
+    FkgRows: array of TAnimGridRowData;
+
+    procedure ClearKGData;
+    procedure DisplayKGData(const STC_idx: Integer);
   public
     procedure ShowEditor(const M3File: TM3File);
     procedure ResetAnimView;
@@ -126,6 +156,59 @@ procedure TFAnimListView.comboFilterBySTCChange(Sender: TObject);
 begin
   if sbFilterIDs.Down then
     ResetIDTree;
+end;
+
+procedure TFAnimListView.dgAnimationKeyTableDrawCell(Sender: TObject; aCol,
+  aRow: Integer; aRect: TRect; aState: TGridDrawState);
+var
+  styl: TTextStyle;
+  i: integer;
+begin
+  with dgAnimationKeyTable.Canvas do
+  begin
+    styl := TextStyle;
+    if (aCol = 0) and (aRow = 0) then
+    begin
+      Line(aRect.TopLeft,aRect.BottomRight);
+      aRect.Inflate(-8,-8);
+      styl.Alignment := taLeftJustify;
+      styl.Layout := tlBottom;
+      TextRect(aRect,aRect.Left,0,'Animation',styl);
+      styl.Alignment := taRightJustify;
+      styl.Layout := tlTop;
+      TextRect(aRect,0,aRect.Top,'Frame',styl);
+      Exit;
+    end;
+    if (aCol = FkgMouseCol) then
+    begin
+      Pen.Color := clRed;
+      i := (aRect.Left+aRect.Right) div 2;
+      Line(i,aRect.Top,i,aRect.Bottom);
+    end;
+    if aRow = 0 then
+    begin
+      i := aCol-1;
+      styl.Alignment := taCenter;
+      styl.Layout := tlCenter;
+      TextRect(aRect,0,0,IntToStr(i),styl);
+      Exit;
+    end;
+    if comboSTC.ItemIndex = -1 then Exit;
+  end;
+end;
+
+procedure TFAnimListView.dgAnimationKeyTableMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  c: integer;
+begin
+  c := dgAnimationKeyTable.MouseToCell(Point(x,y)).x;
+  if c < 1 then c := 1;
+  if (c <> FkgMouseCol) then
+  begin
+    FkgMouseCol := c;
+    dgAnimationKeyTable.Invalidate;
+  end;
 end;
 
 procedure TFAnimListView.FormDestroy(Sender: TObject);
@@ -546,8 +629,60 @@ begin
   Result.ImageIndex := aIdx;
 end;
 
+procedure TFAnimListView.ClearKGData;
+var
+  i: Integer;
+begin
+  for i := 0 to length(FkgRows)-1 do
+  begin
+    SetLength(FkgRows[i].keys,0);
+  end;
+  SetLength(FkgRows,0);
+end;
+
+procedure TFAnimListView.DisplayKGData(const STC_idx: Integer);
+var
+  i, j: Integer;
+  pFrames: PM3Structure;
+begin
+  ClearKGData;
+  if (STC_idx < 0) or (STC_idx >= length(FAnimSTCs)) then Exit;
+  FkgCurrentIdx := STC_idx;
+  if comboSTC.ItemIndex <> STC_idx then
+    comboSTC.ItemIndex := STC_idx;
+  with FAnimSTCs[STC_idx] do
+  begin
+    frameCount := 0;
+    SetLength(FkgRows,length(animIds));
+    for i := 0 to length(animIds)-1 do
+    begin
+      FkgRows[i].animID := animIds[i];
+      FkgRows[i].animInfo := GetAnimId(animIds[i]);
+      FkgRows[i].animRowTitle := '';
+      if Assigned(sequenceData[i]) then
+      begin
+        FkgRows[i].keyTag := fm3[sequenceData[i]^.keys.refIndex];
+        pFrames := fm3[sequenceData[i]^.frames.refIndex];
+        if Assigned(pFrames) then
+        begin
+          SetLength(FkgRows[i].keys,pFrames^.ItemCount);
+          for j := 0 to pFrames^.ItemCount-1 do
+          begin
+            FkgRows[i].keys[j].frame := pInt32(pFrames^.Data + pFrames^.ItemSize*j)^;
+            FkgRows[i].keys[j].keyItemIdx := j;
+          end;
+        end;
+      end
+      else
+        FkgRows[i].keyTag := nil;
+    end;
+  end;
+end;
+
 procedure TFAnimListView.ShowEditor(const M3File: TM3File);
 begin
+  dgAnimationKeyTable.ColWidths[0]:=128;
+
   FM3 := M3File;
   ResetAnimView;
   Show;
@@ -558,6 +693,8 @@ begin
   ParseAnimData;
   ResetSTCList;
   ResetIDTree;
+  FkgCurrentIdx := -1;
+  DisplayKGData(0);
 end;
 
 end.
