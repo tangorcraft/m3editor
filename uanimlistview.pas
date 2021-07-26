@@ -212,6 +212,7 @@ var
   pTmp, pSD: PM3Structure;
 begin
   ClearAnimIds;
+  if FM3.TagCount = 0 then Exit;
   // collect anim ids
   for i := 0 to fm3.TagCount-1 do
   if Structures.GetStructureInfo(fm3[i]^,false) then
@@ -270,8 +271,16 @@ begin
         begin
           SetLength(FAnimSTCs[i].sequenceData,pTmp^.ItemCount);
           if length(FAnimSTCs[i].animIds) <> pTmp^.ItemCount then
+          begin
             FMain.Log('Warning: %d:%s[%d] "%s" animation ID count (%d) and SD references count (%d) don''t match',
               [Index,StructName,i,FAnimSTCs[i].name,length(FAnimSTCs[i].animIds),pTmp^.ItemCount]);
+            if length(FAnimSTCs[i].animIds) > pTmp^.ItemCount then
+            begin
+              SetLength(FAnimSTCs[i].sequenceData,length(FAnimSTCs[i].animIds));
+              for k := pTmp^.ItemCount to length(FAnimSTCs[i].animIds)-1 do
+                FAnimSTCs[i].sequenceData[k] := nil;
+            end;
+          end;
           // find SDEV field offset, it will be used for decoding references
           refBaseOffset := 0;
           if Structures.GetStructureInfo(FSTCollections^) then
@@ -314,6 +323,21 @@ begin
               FMain.Log('Warning: %d:%s[%d] "%s" SD reference type at index %d is not referencing any tag (type %d)',
                 [Index,StructName,i,FAnimSTCs[i].name,j,refType]);
               FAnimSTCs[i].sequenceData[j] := nil;
+            end;
+            // check anim ID is in the list
+            if Assigned(FAnimSTCs[i].sequenceData[j]) and (j < length(FAnimSTCs[i].animIds)) then
+            begin
+              idInfo := GetAnimId(FAnimSTCs[i].animIds[j]);
+              if not Assigned(idInfo) then
+              begin
+                pSD := FM3[FAnimSTCs[i].sequenceData[j]^.keys.refIndex];
+                // check if animation data is SDEV-EVNT
+                if not Assigned(pSD) or (pSD^.StructName <> 'EVNT') then
+                begin
+                  FMain.Log('Warning: %d:%s[%d] "%s" anim ID 0x%.8x (%d) not found',
+                    [Index,StructName,i,FAnimSTCs[i].name,FAnimSTCs[i].animIds[j],FAnimSTCs[i].animIds[j]]);
+                end;
+              end;
             end;
           end;
         end

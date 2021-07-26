@@ -267,7 +267,6 @@ procedure TFMain.BAminListClick(Sender: TObject);
 begin
   if FAnimListForm = nil then
   begin
-    if FM3File.TagCount = 0 then Exit;
     Application.CreateForm(TFAnimListView,FAnimListForm);
     FAnimListForm.ShowEditor(FM3File);
     BAminList.Enabled := false;
