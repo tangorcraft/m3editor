@@ -598,13 +598,11 @@ begin
         begin
           if fRefTo <> '' then
             TableView.Cells[COL_Info,i+1] := 'Should reference ' + fRefTo;
-          if not FMain.cbTreeViewNewMode.Checked then
+          if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
           begin
-            if (refCount > 0) and (refIndex > 0) and (refIndex < FM3File.TagCount) then
-            begin
-              ref := GetTreeTagName(FM3File[refIndex]^);
+            ref := GetTreeTagName(FM3File[refIndex]^);
+            if not FMain.cbTreeViewNewMode.Checked then
               treeTags.Items.AddChildObject(treeTags.Selected,fName+' -> '+ref,FM3File[refIndex]);
-            end;
           end;
         end
       else
