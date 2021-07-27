@@ -1805,14 +1805,14 @@
            <field name="unknown5d722d08" type="float" default-value="500.0" />
            <field name="unknownfc180384" type="float" default-value="1200.0" />
            <field name="unknown713b7b48" type="float" default-value="150.0" />
-           <field name="unk00" type="uint32"  expacted-value="0x00000000" />
-           <field name="unk01" type="uint32"  expacted-value="0x00000000" />
-           <field name="unk02" type="uint32"  expacted-value="0x00000000" />
+           <field name="unk00" type="uint32" default-value="0x00000000" />
+           <field name="unk01" type="uint32" default-value="0x00000000" />
+           <field name="unk02" type="uint32" default-value="0x00000000" />
            <field name="unknown1e6f06e7" type="float" default-value="1.0" />
            <field name="unknownColor" type="COL" default-value="0x80ffffff" />
-           <field name="unk03" type="uint32"  expacted-value="0x00000000" />
-           <field name="unk04" type="float"  expacted-value="0x00000000" />
-           <field name="unk05" type="float"  expacted-value="0x00000000" />
+           <field name="unk03" type="uint32" default-value="0x00000000" />
+           <field name="unk04" type="float" default-value="0x00000000" />
+           <field name="unk05" type="float" default-value="0x00000000" />
         </fields>
     </structure>
     
@@ -1829,9 +1829,9 @@
             <field name="unknownLayer1" type="Reference" refTo="LAYR" />
             <field name="unknownLayer2" type="Reference" refTo="LAYR" />
             <field name="unkRefToLFSB" type="Reference" refTo="LFSB" />
-            <field name="unk00" type="uint32"  expacted-value="0x00000000" since-version="3" />
-            <field name="unk01" type="uint32"  expacted-value="0x00000000" since-version="3" />
-            <field name="unk02" type="float"  expacted-value="0x00000000" since-version="3" />
+            <field name="unk00" type="uint32" default-value="0x00000000" since-version="3" />
+            <field name="unk01" type="uint32" default-value="0x00000000" since-version="3" />
+            <field name="unk02" type="float" default-value="0x00000000" since-version="3" />
             <field name="unkRefToCHAR" type="Reference" refTo="CHAR" since-version="3" />
             <field name="unkFloatAnim01" type="FloatAnimationReference" since-version="3" />
             <!-- version 2 may have more fields with version 3 in common -->
@@ -2315,6 +2315,7 @@
         <fields>
             <field name="matrix" type="Matrix44" />
             <field name="unknownAt64" type="uint32" default-value="0x3ca14285" till-version="1" />
+            <field name="shape" type="uint8">
             <hint>Shape types:
                 0 = box
                 1 = sphere
@@ -2325,7 +2326,6 @@
                 6+ = invalid
             </hint>
 			</field>
-            <field name="shape" type="uint8" />
             <!-- Is not always 0 (in Version 1 and 3). It's propably the unintialized part of shape: -->
             <field name="unknown1c286108" type="uint8" default-value="0" />
             <field name="unknown4ddf14b3" type="uint16" default-value="0" />
