@@ -259,23 +259,19 @@ end;
 
 procedure TFAnimListView.dgAnimationKeyTableDblClick(Sender: TObject);
 var
-  pt: TPoint;
   i, c, r: Integer;
 begin
-  //pt := dgAnimationKeyTable.ScreenToClient(Mouse.CursorPos);
-  //dgAnimationKeyTable.MouseToCell(pt.x,pt.y,c,r);
-  r := dgAnimationKeyTable.Row;
-  c := dgAnimationKeyTable.Col;
-  if (r > 0) and (r < length(FkgRows)) then
-  with FkgRows[r-1] do
+  r := dgAnimationKeyTable.Row-1;
+  c := dgAnimationKeyTable.Col-1;
+  if (r >= 0) and (r < length(FkgRows)) then
+  with FkgRows[r] do
   begin
-    Dec(c);
     if sbHideEmptyFrames.Down then
       c := FkgColToFrame[c];
     for i := 0 to length(frames)-1 do
       if frames[i] = c then
       begin
-        SelectFrame(r-1,i);
+        SelectFrame(r,i);
         Exit;
       end;
   end;
