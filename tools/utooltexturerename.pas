@@ -105,6 +105,15 @@ begin
   end;
 end;
 
+function ReplaceSlashes(const S: string): string;
+var
+  i: Integer;
+begin
+  Result := S;
+  for i := 1 to length(Result) do
+    if Result[i]='\' then Result[i] := '/';
+end;
+
 { TFTextureRename }
 
 procedure TFTextureRename.gridTexturesClick(Sender: TObject);
@@ -118,7 +127,7 @@ end;
 procedure TFTextureRename.EditTextureChange(Sender: TObject);
 begin
   if FUpdating then exit;
-  FNewNames[gridTextures.Row-1] := EditTexture.Text;
+  FNewNames[gridTextures.Row-1] := ReplaceSlashes(EditTexture.Text);
   UpdateCell(gridTextures.Row-1);
 end;
 
