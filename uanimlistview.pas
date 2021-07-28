@@ -83,6 +83,7 @@ type
     procedure sbFilterIDsClick(Sender: TObject);
     procedure sbHideEmptyFramesClick(Sender: TObject);
     procedure sbSortByPathClick(Sender: TObject);
+    procedure sgKeyTagTableDblClick(Sender: TObject);
   private
     FM3: TM3File;
 
@@ -104,6 +105,15 @@ type
     procedure ResetSTCList;
     function GetIDTreeTagNode(const aTag: PM3Structure; const aIdx: Integer): TTreeNode;
 
+    procedure EditCHARbyRef(const F: TM3Field);
+    procedure EditInt8Field(const F: TM3Field);
+    procedure EditInt16Field(const F: TM3Field);
+    procedure EditInt32Field(const F: TM3Field);
+    procedure EditFloatField(const F: TM3Field);
+    procedure EditFlagField(const F: TM3Field);
+    procedure EditRefField(const F: TM3Field);
+    procedure EditVEC3asColor(const F: TM3Field);
+    procedure EditCOLasColor(const F: TM3Field);
   private
     // anim-keys grid
     FkgMouseCol: Integer;
@@ -134,7 +144,7 @@ var
 implementation
 
 uses
-  umain;
+  umain, uEditByte, uEditWord, uEditInteger, uEditFlags, uEditFloat, uEditString, uColorEditor, uRefEdit;
 
 const
   COL_Name = 0;
@@ -422,6 +432,61 @@ end;
 procedure TFAnimListView.sbSortByPathClick(Sender: TObject);
 begin
   ResetIDTree;
+end;
+
+procedure TFAnimListView.sgKeyTagTableDblClick(Sender: TObject);
+var
+  idx: integer;
+  FM3Struct: PM3Structure;
+begin
+  idx := sgKeyTagTable.Row - 1;
+  FM3Struct := FkgRows[FkgSelRow].keyTag;
+  if (idx >= 0) and (idx < length(FM3Struct^.ItemFields)) then
+  with FkgRows[FkgSelRow].keyTag^.ItemFields[idx] do
+  case fType of
+    ftBinary: ShowMessage('Editor for binary values is not implemented.');
+    ftUInt8,
+    ftInt8:
+      begin
+        if fTypeFlag then
+          EditFlagField(FM3Struct^.ItemFields[idx])
+        else
+          EditInt8Field(FM3Struct^.ItemFields[idx]);
+      end;
+    ftUInt16,
+    ftInt16:
+      begin
+        if fTypeFlag then
+          EditFlagField(FM3Struct^.ItemFields[idx])
+        else
+          EditInt16Field(FM3Struct^.ItemFields[idx]);
+      end;
+    ftUInt32,
+    ftInt32:
+      begin
+        if fTypeFlag then
+          EditFlagField(FM3Struct^.ItemFields[idx])
+        else
+          EditInt32Field(FM3Struct^.ItemFields[idx]);
+      end;
+    ftFloat: EditFloatField(FM3Struct^.ItemFields[idx]);
+    ftRef, ftRefSmall:
+      begin
+        if Copy(fRefTo,1,4) = 'CHAR' then
+          EditCHARbyRef(FM3Struct^.ItemFields[idx])
+        else
+          EditRefField(FM3Struct^.ItemFields[idx]);
+      end
+    else
+      begin
+        if Copy(fTypeName,1,4) = 'VEC3' then
+          EditVEC3asColor(FM3Struct^.ItemFields[idx])
+        else if Copy(fTypeName,1,3) = 'COL' then
+          EditCOLasColor(FM3Struct^.ItemFields[idx])
+        else
+          ShowMessageFmt('Editor for "%s" structure in not implemented.',[fTypeName]);
+      end;
+  end;
 end;
 
 function TFAnimListView.GetAnimId(const aID: UInt32): PAnimID_Info;
@@ -819,6 +884,212 @@ begin
   end;
   Result := treeIDs.Items.AddChildObject(node,GetTagItemName(aTag^,aIdx),aTag);
   Result.ImageIndex := aIdx;
+end;
+
+procedure TFAnimListView.EditCHARbyRef(const F: TM3Field);
+var
+  pTmp: PM3Structure;
+  i, mr, l: Integer;
+  s: string;
+  p: Pointer;
+begin
+  mr := mrNone;
+  pTmp := FM3[Pm3ref(F.fData)^.refIndex];
+  if (pTmp^.Tag = CHARTag) and (pTmp^.SpecialType <> sstCharBinary) and (Length(pTmp^.RefFrom) = 1) then
+  begin
+    with TFEditString.Create(Self) do
+    try
+      FInitalVal := PChar(pTmp^.Data);
+      BResetClick(nil);
+      BEditCHARRef.Visible := True;
+      mr := ShowModal;
+      if mr = mrOK then
+      begin
+        s := Edit.Text;
+        l := pTmp^.ItemCount;
+        ResizeStructure(pTmp^,length(s)+1);
+        StrPCopy(pTmp^.Data,s);
+        if (Length(pTmp^.RefFrom) > 0) and (pTmp^.ItemCount <> l) then
+        begin
+          for i := 0 to length(pTmp^.RefFrom)-1 do
+          with pTmp^.RefFrom[i] do
+          begin
+            p := FM3[rfTagIndex]^.Data + rfRefFieldOffset;
+            Pm3ref_small(p)^.refCount := pTmp^.ItemCount;
+          end;
+        end;
+        FMain.ModelChanged(Self);
+        UpdateKeyTagTable;
+      end;
+    finally
+      Free;
+    end;
+  end;
+  if mr = mrRetry then
+    EditRefField(F);
+end;
+
+procedure TFAnimListView.EditInt8Field(const F: TM3Field);
+begin
+  with TFEditByte.Create(Self) do
+  try
+    FInitValue := PUInt8(F.fData)^;
+    BResetClick(nil);
+    case ShowModal of
+      mrOK:
+        begin
+          PUInt8(F.fData)^ := FCurValue;
+          FMain.ModelChanged(Self);
+          UpdateKeyTagTable;
+        end;
+      mrRetry: EditFlagField(F);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditInt16Field(const F: TM3Field);
+begin
+  with TFEditByte.Create(Self) do
+  try
+    FInitValue := PUInt16(F.fData)^;
+    BResetClick(nil);
+    case ShowModal of
+      mrOK:
+        begin
+          PUInt16(F.fData)^ := FCurValue;
+          FMain.ModelChanged(Self);
+          UpdateKeyTagTable;
+        end;
+      mrRetry: EditFlagField(F);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditInt32Field(const F: TM3Field);
+begin
+  with TFEditByte.Create(Self) do
+  try
+    FInitValue := PUInt32(F.fData)^;
+    BResetClick(nil);
+    case ShowModal of
+      mrOK:
+        begin
+          PUInt32(F.fData)^ := FCurValue;
+          FMain.ModelChanged(Self);
+          UpdateKeyTagTable;
+        end;
+      mrRetry: EditFlagField(F);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditFloatField(const F: TM3Field);
+begin
+  with TFEditFloat.Create(Self) do
+  try
+    FInitValue := PSingle(F.fData)^;
+    BResetClick(nil);
+    case ShowModal of
+      mrOK:
+        begin
+          PSingle(F.fData)^ := StrToFloatDef(Edit.Text,0,FloatDotFormat);
+          FMain.ModelChanged(Self);
+          UpdateKeyTagTable;
+        end;
+      mrRetry: EditFlagField(F);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditFlagField(const F: TM3Field);
+var
+  i: integer;
+begin
+  with TFEditFlags.Create(Self) do
+  try
+    case F.fSize of
+      1: begin
+        FInitValue := pUInt8(F.fData)^;
+        for i := 8 to 31 do
+          cbValues.CheckEnabled[i] := False;
+      end;
+      2: begin
+        FInitValue := pUInt16(F.fData)^;
+        for i := 16 to 31 do
+          cbValues.CheckEnabled[i] := False;
+      end;
+      4: FInitValue := pUInt32(F.fData)^;
+    end;
+    for i := 0 to 31 do
+      if F.fTypeFlagBits[i] <> '' then
+        cbValues.Items[i] := F.fTypeFlagBits[i];
+    BResetClick(nil);
+    case ShowModal of
+      mrOK:
+        begin
+          case F.fSize of
+            1: pUInt8(F.fData)^ := FVal8;
+            2: pUInt16(F.fData)^ := FVal16;
+            4: pUInt32(F.fData)^ := FInitValue;
+          end;
+          FMain.ModelChanged(Self);
+          UpdateKeyTagTable;
+        end;
+      mrRetry: EditFlagField(F);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditRefField(const F: TM3Field);
+begin
+  with TFRefEdit.Create(Self) do
+  try
+    if ShowEditor(FM3,F,FkgRows[FkgSelRow].keyTag^.Index) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateKeyTagTable;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditVEC3asColor(const F: TM3Field);
+begin
+  with TFEditColor.Create(Self) do
+  try
+    if ShowEditorVEC3(F.fData) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateKeyTagTable;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TFAnimListView.EditCOLasColor(const F: TM3Field);
+begin
+  with TFEditColor.Create(Self) do
+  try
+    if ShowEditorCOL(F.fData) then
+    begin
+      FMain.ModelChanged(Self);
+      UpdateKeyTagTable;
+    end;
+  finally
+    Free;
+  end;
 end;
 
 function TFAnimListView.kgFrameToCol(const aFrame: Int32): Integer;

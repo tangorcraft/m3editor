@@ -32,6 +32,7 @@ type
     BOk: TButton;
     BCancel: TButton;
     BReset: TButton;
+    BEditCHARRef: TButton;
     Edit: TEdit;
     procedure BResetClick(Sender: TObject);
   private

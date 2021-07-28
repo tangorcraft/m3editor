@@ -49,4 +49,14 @@ object FEditString: TFEditString
     Width = 408
     TabOrder = 3
   end
+  object BEditCHARRef: TButton
+    Left = 256
+    Height = 25
+    Top = 38
+    Width = 105
+    Caption = 'Edit Reference'
+    ModalResult = 4
+    TabOrder = 4
+    Visible = False
+  end
 end
