@@ -91,6 +91,9 @@ procedure glmIdntRotateTranRad3fv(const M: PGLfloat; const TranVec: PGLfloat;
 procedure glmIdntRotateTranDeg3fv(const M: PGLfloat; const TranVec: PGLfloat;
   const rotangle: GLfloat; const RotateVec: PGLfloat);
 
+procedure glmIdntScalef(const M: PGLfloat; const dX, dY, dZ: GLfloat);
+procedure glmScalef(const M: PGLfloat; const dX, dY, dZ: GLfloat);
+
 procedure glmMulMatrix4x4f(const M1, M2, MResult: PGLfloat);
 procedure glmMulMatrix4x4Optimized3x3f(const M1, M2, MResult: PGLfloat);
 
@@ -379,6 +382,41 @@ begin
   //mcopy[14]:=m[14];
   //mcopy[15]:=m[15];
   Move(M^,mcopy,glm4x4size);
+end;
+
+procedure glmIdntScalef(const M: PGLfloat; const dX, dY, dZ: GLfloat);
+begin
+  Move(mIdentity,m^,glm4x3size);
+
+  m[m4i0_0]:=dX;
+  m[m4i1_1]:=dY;
+  m[m4i2_2]:=dZ;
+  m[m4i3_3]:=1;
+end;
+
+procedure glmScalef(const M: PGLfloat; const dX, dY, dZ: GLfloat);
+begin
+  glmCopyM(M); // copy M to mcopy trheadvar
+
+  M[m4i0_0]:=mcopy[m4i0_0]*dX;
+  M[m4i1_0]:=mcopy[m4i1_0]*dY;
+  M[m4i2_0]:=mcopy[m4i2_0]*dZ;
+  M[m4i3_0]:=mcopy[m4i3_0];
+
+  M[m4i0_1]:=mcopy[m4i0_1]*dX;
+  M[m4i1_1]:=mcopy[m4i1_1]*dY;
+  M[m4i2_1]:=mcopy[m4i2_1]*dZ;
+  M[m4i3_1]:=mcopy[m4i3_1];
+
+  M[m4i0_2]:=mcopy[m4i0_2]*dX;
+  M[m4i1_2]:=mcopy[m4i1_2]*dY;
+  M[m4i2_2]:=mcopy[m4i2_2]*dZ;
+  M[m4i3_2]:=mcopy[m4i3_2];
+
+  M[m4i0_3]:=mcopy[m4i0_3]*dX;
+  M[m4i1_3]:=mcopy[m4i1_3]*dY;
+  M[m4i2_3]:=mcopy[m4i2_3]*dZ;
+  M[m4i3_3]:=mcopy[m4i3_3];
 end;
 
 procedure glmMulMatrix4x4f(const M1, M2, MResult: PGLfloat);

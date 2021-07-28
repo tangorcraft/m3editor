@@ -205,6 +205,10 @@ object FMain: TFMain
       object MToolBatchScan: TMenuItem
         Caption = 'Scan, check and repair m3 files ...'
       end
+      object MToolFixBoneScale: TMenuItem
+        Caption = 'Fix Negative Bone Scale'
+        OnClick = MToolFixBoneScaleClick
+      end
     end
     object MAbout: TMenuItem
       Caption = 'About'

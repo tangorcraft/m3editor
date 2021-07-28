@@ -201,7 +201,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="29">
+    <Units Count="30">
       <Unit0>
         <Filename Value="m3editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -389,6 +389,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="UAnimListView"/>
       </Unit28>
+      <Unit29>
+        <Filename Value="tools\utoolfixbonescale.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UToolFixBoneScale"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

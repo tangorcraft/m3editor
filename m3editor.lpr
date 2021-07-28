@@ -1,6 +1,6 @@
 (*
     This file is a part of "M3 Editor" project <https://github.com/tangorcraft/m3editor/>.
-    Copyright (C) 2020  Ivan Markov (TangorCraft)
+    Copyright (C) 2020-2021  Ivan Markov (TangorCraft)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ uses
   uEditFlags, uEditFloat, uEditWord, uEditByte, uCHARBulkEdit, uM3ML, uCommon,
   uRefEdit, uNewTag, uColorEditor, uAbout, u3DViewForm, dglOpenGL, glMathUtils,
   glmCameraUtils, RenderUtils, CountersUtils, InterLockedSyncUtils,
-  RenderEx, uToolBatchScan, uToolTextureRename, UAnimListView;
+  RenderEx, uToolBatchScan, uToolTextureRename, UAnimListView, UToolFixBoneScale;
 
 {$R *.res}
 

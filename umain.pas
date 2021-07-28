@@ -47,6 +47,7 @@ type
     MDebugAction: TMenuItem;
     MDebug1: TMenuItem;
     MAbout: TMenuItem;
+    MToolFixBoneScale: TMenuItem;
     MTextureTool: TMenuItem;
     MToolBatchScan: TMenuItem;
     MTools: TMenuItem;
@@ -95,6 +96,7 @@ type
     procedure MStructOpenClick(Sender: TObject);
     procedure MStructReloadClick(Sender: TObject);
     procedure MTextureToolClick(Sender: TObject);
+    procedure MToolFixBoneScaleClick(Sender: TObject);
   private
     FOnLog: TM3LogEvent;
 
@@ -143,7 +145,7 @@ uses
   {$Else}
   RenderDummy,
   {$ENDIF}
-  RenderUtils, dglOpenGL;
+  RenderUtils, dglOpenGL, UToolFixBoneScale;
 
 {$R *.lfm}
 
@@ -458,6 +460,11 @@ begin
   finally
     Free;
   end;
+end;
+
+procedure TFMain.MToolFixBoneScaleClick(Sender: TObject);
+begin
+  FixNegativeBoneScale(FM3File);
 end;
 
 procedure TFMain.UpdateLabels;
