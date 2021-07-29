@@ -52,7 +52,9 @@ type
     comboFilterBySTC: TComboBox;
     comboSTC: TComboBox;
     dgAnimationKeyTable: TDrawGrid;
+    edtKGSearch: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
     lblFullPath: TLabel;
     lbAnimIDs: TListBox;
     PageControl: TPageControl;
@@ -77,6 +79,7 @@ type
       X, Y: Integer);
     procedure dgAnimationKeyTableSelection(Sender: TObject; aCol,
       aRow: Integer);
+    procedure edtKGSearchKeyPress(Sender: TObject; var Key: char);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure lbAnimIDsDblClick(Sender: TObject);
@@ -126,6 +129,9 @@ type
     FkgFrameLast: Integer;
 
     FkgKeyTagItemData: Pointer;
+
+    FkgSearch: string;
+    function kgRowFilterPass(rTitle: string): boolean;
 
     function kgFrameToCol(const aFrame:Int32): Integer;
     function kgFrameAdd(const aFrame:Int32): Integer;
@@ -232,6 +238,17 @@ begin
   pts[2].y := my;
 
   Canvas.Polygon(@pts[0],3);
+end;
+
+function ExtractWord(var S: string; const C: Char = ' '): string;
+var
+  i: integer;
+begin
+  i := 1;
+  while (i <= length(s)) and (s[i]<>c) do
+    inc(i);
+  Result:=Copy(S,1,i-1);
+  Delete(s,1,i);
 end;
 
 { TFAnimListView }
@@ -395,6 +412,17 @@ procedure TFAnimListView.dgAnimationKeyTableSelection(Sender: TObject; aCol,
   aRow: Integer);
 begin
   dgAnimationKeyTable.Invalidate;
+end;
+
+procedure TFAnimListView.edtKGSearchKeyPress(Sender: TObject; var Key: char);
+begin
+  if Key = #13 then
+  begin
+    Key := #0;
+    FkgSearch := AnsiLowerCase(Trim(edtKGSearch.Text));
+    DisplayKGData(FkgCurSTCIdx);
+    SelectFrame(0,0);
+  end;
 end;
 
 procedure TFAnimListView.FormDestroy(Sender: TObject);
@@ -1080,6 +1108,21 @@ begin
   end;
 end;
 
+function TFAnimListView.kgRowFilterPass(rTitle: string): boolean;
+var
+  s, srch: string;
+begin
+  if FkgSearch = '' then Exit(true);
+  rTitle := AnsiLowerCase(rTitle);
+  srch := FkgSearch;
+  Result := false;
+  repeat
+    s := ExtractWord(srch);
+    if Pos(s,rTitle) = 0 then Exit;
+  until srch = '';
+  Result := True;
+end;
+
 function TFAnimListView.kgFrameToCol(const aFrame: Int32): Integer;
 var
   i: Integer;
@@ -1122,7 +1165,7 @@ end;
 
 procedure TFAnimListView.DisplayKGData(const STC_idx: Integer);
 var
-  i, j, k: Integer;
+  i, j, k, rowIdx: Integer;
   pFrames: PM3Structure;
 begin
   ClearKGData;
@@ -1137,47 +1180,53 @@ begin
   begin
     FkgFrameLast := 0;
     SetLength(FkgRows,length(animIds));
+    rowIdx := 0;
     for i := 0 to length(animIds)-1 do
     begin
-      FkgRows[i].animID := animIds[i];
-      FkgRows[i].animInfo := GetAnimId(animIds[i]);
-      if Assigned(FkgRows[i].animInfo) then
+      FkgRows[rowIdx].animID := animIds[i];
+      FkgRows[rowIdx].animInfo := GetAnimId(animIds[i]);
+      if Assigned(FkgRows[rowIdx].animInfo) then
       begin
-        with FkgRows[i].animInfo^ do
-          FkgRows[i].animRowTitle := Format('0x%.8x (%d)'#13'%s'#13'%s',
+        with FkgRows[rowIdx].animInfo^ do
+          FkgRows[rowIdx].animRowTitle := Format('0x%.8x (%d)'#13'%s'#13'%s',
           [animIds[i],animIds[i],GetTagItemName(parentTag^,parentItemIndex,true),ExtraxtBaseFieldName(fieldName)]);
       end
       else
-        FkgRows[i].animRowTitle := Format('0x%.8x (%d)'#13,[animIds[i],animIds[i]]);
+        FkgRows[rowIdx].animRowTitle := Format('0x%.8x (%d)'#13,[animIds[i],animIds[i]]);
       if Assigned(sequenceData[i]) then
       begin
-        FkgRows[i].keyTag := fm3[sequenceData[i]^.keys.refIndex];
+        FkgRows[rowIdx].keyTag := fm3[sequenceData[i]^.keys.refIndex];
         if FkgFrameLast < sequenceData[i]^.fend then
           FkgFrameLast := sequenceData[i]^.fend;
         pFrames := fm3[sequenceData[i]^.frames.refIndex];
         if Assigned(pFrames) then
         begin
-          SetLength(FkgRows[i].frames,pFrames^.ItemCount);
+          SetLength(FkgRows[rowIdx].frames,pFrames^.ItemCount);
           for j := 0 to pFrames^.ItemCount-1 do
           begin
-            FkgRows[i].frames[j] := pInt32(pFrames^.Data + pFrames^.ItemSize*j)^;
-            if FkgFrameLast < FkgRows[i].frames[j] then
-              FkgFrameLast := FkgRows[i].frames[j];
-            kgFrameAdd(FkgRows[i].frames[j]);
+            FkgRows[rowIdx].frames[j] := pInt32(pFrames^.Data + pFrames^.ItemSize*j)^;
+            if FkgFrameLast < FkgRows[rowIdx].frames[j] then
+              FkgFrameLast := FkgRows[rowIdx].frames[j];
+            kgFrameAdd(FkgRows[rowIdx].frames[j]);
           end;
         end;
       end
       else
-        FkgRows[i].keyTag := nil;
-      if Assigned(FkgRows[i].keyTag) then
+        FkgRows[rowIdx].keyTag := nil;
+      if Assigned(FkgRows[rowIdx].keyTag) then
       begin
-        FkgRows[i].animRowTitle += ' - ' + FkgRows[i].keyTag^.StructName;
+        FkgRows[rowIdx].animRowTitle += ' - ' + FkgRows[rowIdx].keyTag^.StructName;
       end
       else
       begin
-        FkgRows[i].animRowTitle += ' - (not found)';
+        FkgRows[rowIdx].animRowTitle += ' - (not found)';
       end;
+      if kgRowFilterPass(FkgRows[rowIdx].animRowTitle) then
+        inc(rowIdx)
+      else
+        SetLength(FkgRows[rowIdx].frames,0);
     end;
+    SetLength(FkgRows,rowIdx);
     if sbHideEmptyFrames.Down then
       dgAnimationKeyTable.ColCount := length(FkgColToFrame)+1
     else
