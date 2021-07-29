@@ -128,6 +128,7 @@ type
     FkgKeyTagItemData: Pointer;
 
     function kgFrameToCol(const aFrame:Int32): Integer;
+    function kgFrameAdd(const aFrame:Int32): Integer;
 
     procedure ClearKGData;
     procedure DisplayKGData(const STC_idx: Integer);
@@ -540,9 +541,10 @@ procedure TFAnimListView.ParseAnimData;
 var
   i, j, k: Integer;
   Pid: PUInt32;
-  refType, refIdx, refBaseOffset: UInt32;
+  refType, refIdx: UInt32;
   idInfo: PAnimID_Info;
   pTmp, pSD: PM3Structure;
+  refBaseOffset: Pointer;
 begin
   ClearAnimIds;
   if FM3.TagCount = 0 then Exit;
@@ -608,25 +610,15 @@ begin
             FMain.Log('Warning: %d:%s[%d] "%s" animation ID count (%d) and SD references count (%d) don''t match',
               [Index,StructName,i,FAnimSTCs[i].name,length(FAnimSTCs[i].animIds),pTmp^.ItemCount]);
             if length(FAnimSTCs[i].animIds) > pTmp^.ItemCount then
-            begin
               SetLength(FAnimSTCs[i].sequenceData,length(FAnimSTCs[i].animIds));
-              for k := pTmp^.ItemCount to length(FAnimSTCs[i].animIds)-1 do
-                FAnimSTCs[i].sequenceData[k] := nil;
-            end;
           end;
+          for k := 0 to length(FAnimSTCs[i].sequenceData)-1 do
+            FAnimSTCs[i].sequenceData[k] := nil;
           // find SDEV field offset, it will be used for decoding references
-          refBaseOffset := 0;
+          refBaseOffset := nil;
           if Structures.GetStructureInfo(FSTCollections^) then
-          begin
-            for j := 0 to length(FSTCollections^.ItemFields)-1 do
-              if FSTCollections^.ItemFields[j].fName = 'sdev' then
-              begin
-                refBaseOffset := FSTCollections^.ItemFields[j].fOffset;
-                Break;
-              end;
-          end;
-          if refBaseOffset = 0 then
-            refBaseOffset := 48; // magic number manually calculated for STC_ version 4
+            refBaseOffset := GetFieldPointer(FSTCollections^,'sdev',i);
+          if Assigned(refBaseOffset) then
           for j := 0 to pTmp^.ItemCount-1 do
           begin
             refIdx := pUInt32(pTmp^.Data+j*pTmp^.ItemSize)^;
@@ -639,7 +631,7 @@ begin
               FAnimSTCs[i].sequenceData[j] := nil;
               Continue;
             end;
-            pSD := fm3[Pm3ref(Data+ItemSize*i+refBaseOffset+sizeof(m3ref)*refType)^.refIndex];
+            pSD := fm3[Pm3ref(refBaseOffset+sizeof(m3ref)*refType)^.refIndex];
             if Assigned(pSD) then
             begin
               if refIdx >= pSD^.ItemCount then
@@ -1098,6 +1090,24 @@ begin
       Exit(i);
 end;
 
+function TFAnimListView.kgFrameAdd(const aFrame: Int32): Integer;
+var
+  i, j, len: Integer;
+begin
+  i := 0;
+  len := Length(FkgColToFrame);
+  while (i < len) and (aFrame > FkgColToFrame[i]) do
+    inc(i);
+  Result := i;
+  if (len = i) or (FkgColToFrame[i] > aFrame) then
+  begin
+    SetLength(FkgColToFrame, len+1);
+    for j := len downto i+1 do
+      FkgColToFrame[j] := FkgColToFrame[j-1];
+    FkgColToFrame[i] := aFrame;
+  end;
+end;
+
 procedure TFAnimListView.ClearKGData;
 var
   i: Integer;
@@ -1114,7 +1124,6 @@ procedure TFAnimListView.DisplayKGData(const STC_idx: Integer);
 var
   i, j, k: Integer;
   pFrames: PM3Structure;
-  keyPresent: array of Boolean;
 begin
   ClearKGData;
   dgAnimationKeyTable.ColCount := 1;
@@ -1154,6 +1163,7 @@ begin
             FkgRows[i].frames[j] := pInt32(pFrames^.Data + pFrames^.ItemSize*j)^;
             if FkgFrameLast < FkgRows[i].frames[j] then
               FkgFrameLast := FkgRows[i].frames[j];
+            kgFrameAdd(FkgRows[i].frames[j]);
           end;
         end;
       end
@@ -1167,33 +1177,6 @@ begin
       begin
         FkgRows[i].animRowTitle += ' - (not found)';
       end;
-    end;
-    // fill ColToFrame for compressed view in table
-    SetLength(keyPresent,FkgFrameLast+1);
-    try
-      for i := 0 to FkgFrameLast do keyPresent[i]:=false;
-      k := 0;
-      for i := 0 to length(FkgRows)-1 do
-        for j := 0 to length(FkgRows[i].frames)-1 do
-        if not keyPresent[FkgRows[i].frames[j]] then
-        begin
-          keyPresent[FkgRows[i].frames[j]] := true;
-          Inc(k);
-        end;
-      SetLength(FkgColToFrame,k);
-      i := 0;
-      j := 0;
-      while (i <= FkgFrameLast)and(j < k) do
-      begin
-        if keyPresent[i] then
-        begin
-          FkgColToFrame[j] := i;
-          Inc(j);
-        end;
-        Inc(i);
-      end;
-    finally
-      SetLength(keyPresent,0);
     end;
     if sbHideEmptyFrames.Down then
       dgAnimationKeyTable.ColCount := length(FkgColToFrame)+1
